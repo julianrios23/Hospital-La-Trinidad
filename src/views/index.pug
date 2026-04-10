@@ -1,0 +1,16 @@
+extends layout
+
+block content
+  .row.justify-content-center
+    .col-md-6
+      .card.shadow-sm
+        .card-header.bg-primary.text-white Admisión de Paciente
+        .card-body
+          form(action="/buscar-paciente", method="POST")
+            .mb-3
+              label.form-label(for="dni") Ingrese DNI del Paciente
+              input#dni.form-control(type="text", name="dni", placeholder="Ej: 35123456", required)
+            button.btn.btn-success.w-100(type="submit") Buscar / Iniciar Atención
+
+  if error
+    .alert.alert-danger.mt-3= error
