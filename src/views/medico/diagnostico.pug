@@ -1,0 +1,94 @@
+extends ../layout
+
+block content
+  h4.mb-4
+    i.bi.bi-clipboard2-check.text-success.me-2
+    | Atención Médica - Diagnóstico y Tratamiento
+
+  .row
+    // Información del Paciente y Triage
+    .col-md-4
+      .card.border-0.shadow-sm.mb-4
+        .card-header.bg-primary.text-white.fw-bold
+          i.bi.bi-person.me-2
+          | Datos del Paciente
+        .card-body
+          h5.card-title.text-primary= `${paciente.apellido}, ${paciente.nombre}`
+          p.card-text.mb-1
+            strong DNI:
+            | #{paciente.dni}
+          p.card-text.mb-1
+            strong Edad:
+            | #{paciente.edad || 'No especificada'} años
+          p.card-text.mb-1
+            strong Género:
+            | #{paciente.genero}
+          p.card-text.mb-1
+            strong Obra Social:
+            | #{paciente.obra_social || 'No posee'}
+
+      .card.border-0.shadow-sm.mb-4
+        .card-header.bg-warning.text-dark.fw-bold
+          i.bi.bi-heart-pulse.me-2
+          | Datos del Triage
+        .card-body
+          .mb-2
+            span.badge(class=`badge bg-${triage.prioridad == 1 ? 'danger' : triage.prioridad == 2 ? 'warning' : 'info'} fs-6`)
+              | Nivel #{triage.prioridad} - Prioridad
+          .row.g-2
+            .col-6
+              small.text-muted.d-block Presión Arterial
+              strong= triage.presion_arterial || 'No registrado'
+            .col-6
+              small.text-muted.d-block Temperatura
+              strong= `${triage.temperatura || 'N/A'}°C`
+            .col-6
+              small.text-muted.d-block Frecuencia Cardíaca
+              strong= `${triage.frecuencia_cardiaca || 'N/A'} LPM`
+            .col-6
+              small.text-muted.d-block Saturación O2
+              strong= `${triage.saturacion_oxigeno || 'N/A'}%`
+          hr
+          small.text-muted.d-block Observaciones Enfermería
+          p.small= triage.observaciones_enfermeria || 'Sin observaciones'
+
+    // Formulario de Diagnóstico y Tratamiento
+    .col-md-8
+      .card.border-0.shadow-sm
+        .card-header.bg-success.text-white.fw-bold
+          i.bi.bi-stethoscope.me-2
+          | Diagnóstico y Tratamiento Médico
+        .card-body
+          form(action="/guardar-diagnostico", method="POST")
+            input(type="hidden", name="admision_id", value=admision_id)
+
+            .mb-4
+              label.form-label.fw-bold.h5.text-primary Evolución y Diagnóstico
+              textarea.form-control(name="diagnostico", rows="4", placeholder="Describa la evolución del paciente, síntomas actuales y diagnóstico médico...", required)
+
+            .row
+              .col-md-6.mb-4
+                label.form-label.fw-bold.h6.text-info Tratamiento / Medicación Suministrada
+                textarea.form-control(name="tratamiento_medicacion", rows="4", placeholder="Medicamentos administrados, dosis, vía de administración...")
+
+              .col-md-6.mb-4
+                label.form-label.fw-bold.h6.text-warning Indicaciones al Alta
+                textarea.form-control(name="indicaciones_alta", rows="4", placeholder="Instrucciones para el paciente, controles futuros, recomendaciones...")
+
+            .form-check.form-switch.mb-4.p-3.bg-light.rounded
+              input.form-check-input#requiere_internacion(type="checkbox", name="requiere_internacion", value="1")
+              label.form-check-label.fw-bold.text-danger.fs-5(for="requiere_internacion")
+                i.bi.bi-hospital.me-2
+                | Requiere Internación Hospitalaria
+
+            .d-flex.justify-content-between.align-items-center
+              a.btn.btn-secondary(href="/atencion-medica")
+                i.bi.bi-arrow-left.me-2
+                | Volver a Lista
+              .d-flex.gap-2
+                button.btn.btn-outline-primary(type="button")
+                  i.bi.bi-save.me-2
+                  | Guardar Borrador
+                button.btn.btn-success.btn-lg.px-4(type="submit")
+                  i.bi.bi-check-circle.me-2
+                  | Finalizar Atención 

@@ -21,3 +21,48 @@
   background-image: radial-gradient(circle at 0 100%, transparent 10px, #fff 10px),
                     radial-gradient(circle at 100% 100%, transparent 10px, #fff 10px);
 }
+/* Estilo para el selector de prioridad de triage */
+.triage-prioridad {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9f2ff 100%);
+  border: 2px solid #0d6efd !important;
+  box-shadow: inset 0 1px 3px rgba(13, 110, 253, 0.12);
+  border-radius: 0.75rem;
+  padding: 0.65rem 0.9rem;
+  color: #0d6efd;
+}
+
+.triage-prioridad:focus {
+  border-color: #0a58ca !important;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.triage-prioridad option {
+  padding: 0.5rem;
+}
+
+/* Triage option colors */
+.triage-option-1 {
+  color: #dc3545;
+  font-weight: 700;
+}
+
+.triage-option-2 {
+  color: #fd7e14;
+  font-weight: 700;
+}
+
+.triage-option-3 {
+  color: #ffc107;
+  font-weight: 700;
+}
+
+.triage-option-4 {
+  color: #198754;
+  font-weight: 700;
+}
+
+.triage-option-5 {
+  color: #0dcaf0;
+  font-weight: 700;
+}
+

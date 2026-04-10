@@ -26,10 +26,13 @@ block content
                     span.badge(class=`bg-${p.prioridad == 1 ? 'danger' : p.prioridad == 2 ? 'warning' : 'info'}`) 
                       | Nivel #{p.prioridad}
                   td.fw-bold= `${p.apellido}, ${p.nombre}`
-                  td= p.tiempo_espera
+                  td
+                    - const horas = Math.floor(p.tiempo_espera_minutos / 60)
+                    - const minutos = p.tiempo_espera_minutos % 60
+                    = `${horas}h ${minutos}m`
                   td
                     small.text-muted 
-                      | TA: #{p.presion} | Temp: #{p.temperatura}° | Sat: #{p.saturacion}%
+                      | TA: #{p.presion} | Temp: #{p.temperatura}° | FC: #{p.frecuencia_cardiaca} | Sat: #{p.saturacion_oxigeno}%
                   td
                     a.btn.btn-outline-primary.btn-sm(href=`/atender/${p.id_admision}`) Atender
 
