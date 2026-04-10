@@ -1,28 +1,37 @@
-extends layout
+extends ../layout
 
 block content
   .row.justify-content-center
     .col-md-8
-      .card.shadow-sm
-        .card-header.bg-primary.text-white
-          h5.mb-0 Confirmar Ingreso: #{paciente.apellido}, #{paciente.nombre}
-        .card-body
+      .card.shadow-sm.border-0
+        .card-header.bg-primary.text-white.py-3
+          h5.mb-0
+            i.bi.bi-person-check.me-2
+            | Iniciar Nueva Atención: #{paciente.apellido}, #{paciente.nombre}
+        .card-body.p-4
+          .alert.alert-info.d-flex.align-items-center
+            i.bi.bi-info-circle-fill.me-2
+            div Verifique los datos actuales del paciente antes de confirmar el ingreso.
+          
           form(action="/crear-admision", method="POST")
-            input(type="hidden", name="paciente_id", value=paciente.id_paciente)
+            input(type="hidden" name="paciente_id" value=paciente.id_paciente)
             
-            .row.mb-3
+            .row.g-3.mb-4
               .col-md-6
-                label.form-label Obra Social Actual
+                label.form-label Obra Social Vigente
                 select.form-select(name="obra_social_id")
                   each os in obrasSociales
-                    option(value=os.id_obra_social, selected=(os.id_obra_social == paciente.obra_social_id))= os.nombre_obra_social
+                    option(value=os.id_obra_social selected=(os.id_obra_social == paciente.obrasocial))= os.nombre_obra_social
               .col-md-6
                 label.form-label Teléfono de Contacto
-                input.form-control(type="text", name="telefono", value=paciente.telefono)
+                input.form-control(type="text" name="telefono" value=paciente.telefono)
+              
+              .col-12
+                label.form-label Motivo de Consulta Actual (Ventanilla)
+                textarea.form-control(name="motivo_consulta" rows="3" required placeholder="Describa el síntoma principal del ingreso hoy...")
 
-            .mb-3
-              label.form-label Motivo de Consulta (Breve)
-              textarea.form-control(name="motivo_consulta", rows="3", required, placeholder="Ej: Control de tensión, traumatismo en mano...")
-
-            .d-grid
-              button.btn.btn-primary.btn-lg(type="submit") Iniciar Proceso de Guardia
+            .d-flex.justify-content-end.gap-2
+              a.btn.btn-light(href="/") Cancelar
+              button.btn.btn-primary.px-5(type="submit") 
+                i.bi.bi-arrow-right-circle.me-2
+                | Enviar a Sala de Espera

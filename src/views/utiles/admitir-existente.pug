@@ -1,4 +1,4 @@
-extends layout
+extends ../layout
 
 block content
   .row.justify-content-center
@@ -11,7 +11,7 @@ block content
         .card-body.p-4
           .alert.alert-info.d-flex.align-items-center
             i.bi.bi-info-circle-fill.me-2
-            div Verifique los datos de contacto antes de continuar.
+            div Verifique los datos antes de continuar.
           
           form(action="/crear-admision", method="POST")
             input(type="hidden", name="paciente_id", value=paciente.id_paciente)
@@ -21,7 +21,7 @@ block content
                 label.form-label Obra Social Vigente
                 select.form-select(name="obra_social_id")
                   each os in obrasSociales
-                    option(value=os.id_obra_social, selected=(os.id_obra_social == paciente.obra_social_id))= os.nombre_obra_social
+                    option(value=os.id_obra_social, selected=(os.id_obra_social == paciente.obrasocial))= os.nombre_obra_social
               .col-md-6
                 label.form-label Teléfono Actualizado
                 input.form-control(type="text", name="telefono", value=paciente.telefono)

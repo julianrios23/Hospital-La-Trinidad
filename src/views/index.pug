@@ -1,19 +1,14 @@
 extends layout
 
 block content
-  .row.justify-content-center
-    .col-md-6
-      .card.shadow-sm
-        .card-header.bg-primary.text-white Admisión de Paciente
-        .card-bodyextends layout
-
-block content
+  // --- Breadcrumb ---
   .row.mb-4
     .col-12
       nav(aria-label="breadcrumb")
         ol.breadcrumb
-          li.breadcrumb-item.active(aria-current="page") Admisión de Pacientes
+          
   
+  // --- Tarjeta de Búsqueda Principal ---
   .row.justify-content-center
     .col-md-8.col-lg-6
       .card.border-0.shadow-lg
@@ -48,31 +43,57 @@ block content
             i.bi.bi-info-circle.me-1
             | Si el paciente no existe, el sistema permitirá el registro automático.
 
-  // Sección Informativa de la Guardia (Opcional)
+  // --- Sección Informativa (Tus tarjetas de KPI) ---
   .row.mt-5
     .col-md-4
-      .card.text-center.border-0.bg-white.p-3.mb-3
+      .card.text-center.border-0.bg-white.p-3.mb-3.shadow-sm
         .display-6.text-primary
           i.bi.bi-people
         h6.mt-2 Pacientes en Espera
         h3 12
     .col-md-4
-      .card.text-center.border-0.bg-white.p-3.mb-3
+      .card.text-center.border-0.bg-white.p-3.mb-3.shadow-sm
         .display-6.text-warning
           i.bi.bi-hourglass-split
         h6.mt-2 Promedio Espera
         h3 15 min
     .col-md-4
-      .card.text-center.border-0.bg-white.p-3.mb-3
+      .card.text-center.border-0.bg-white.p-3.mb-3.shadow-sm
         .display-6.text-success
           i.bi.bi-check2-circle
         h6.mt-2 Atendidos Hoy
         h3 45
-          form(action="/buscar-paciente", method="POST")
-            .mb-3
-              label.form-label(for="dni") Ingrese DNI del Paciente
-              input#dni.form-control(type="text", name="dni", placeholder="Ej: 35123456", required)
-            button.btn.btn-success.w-100(type="submit") Buscar / Iniciar Atención
 
-  if error
-    .alert.alert-danger.mt-3= error
+  // --- LÓGICA DEL TOAST FLOTANTE --- [cite: 317, 344, 350]
+  if pacienteNoEncontrado
+    .toast-container.position-fixed.bottom-0.end-0.p-3
+      #liveToast.toast.show.bg-warning.text-dark(role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false")
+        .toast-header.bg-warning.text-dark
+          i.bi.bi-exclamation-triangle-fill.me-2
+          strong.me-auto La Trinidad HIS
+          small Ahora
+          button.btn-close(type="button" data-bs-dismiss="toast" aria-label="Close")
+        .toast-body.bg-white
+          p.mb-1 El paciente con DNI 
+            strong #{dniBuscado} 
+            | no está registrado.
+          p.mb-0.text-muted
+            i.bi.bi-arrow-repeat.me-1
+            | Redirigiendo al formulario en 
+            span#timer 5
+            |  segundos...
+
+    script.
+      let countdown = 5;
+      const timerElement = document.getElementById('timer');
+      const dni = "#{dniBuscado}";
+      
+      const interval = setInterval(() => {
+        countdown--;
+        if (timerElement) timerElement.textContent = countdown;
+        if (countdown <= 0) {
+          clearInterval(interval);
+          // Redirección automática tras 5 segundos [cite: 325, 345, 355]
+          window.location.href = "/registro-paciente/" + dni;
+        }
+      }, 1000);

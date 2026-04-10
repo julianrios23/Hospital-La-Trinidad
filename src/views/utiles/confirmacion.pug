@@ -1,20 +1,18 @@
-extends layout
+extends ../layout
 
 block content
   .row.justify-content-center
     .col-md-5
       .card.border-0.shadow-lg.mt-4
         .card-body.p-0
-          // Cabecera del Ticket
           .bg-success.text-white.text-center.py-4
             i.bi.bi-check-circle-fill.display-4
             h3.mt-2 Ingreso Exitoso
           
-          // Cuerpo del Ticket (Efecto papel)
           .p-4(style="border-bottom: 2px dashed #dee2e6;")
             .text-center.mb-4
               h5.fw-bold CLÍNICA LA TRINIDAD
-              small.text-muted Guardia 24hs - Comprobante de Admisión
+              small.text-muted Comprobante de Admisión
             
             .d-flex.justify-content-between.mb-2
               span.text-muted Paciente:
@@ -23,18 +21,15 @@ block content
               span.text-muted DNI:
               span.fw-bold= paciente.dni
             .d-flex.justify-content-between.mb-2
-              span.text-muted Fecha/Hora:
+              span.text-muted Hora:
               span.fw-bold= horaIngreso
-            .d-flex.justify-content-between.mb-2
-              span.text-muted ID Atención:
-              span.fw-bold= `#${idAdmision}`
+            
             
             hr
             .text-center.py-2
               p.mb-0.fw-bold ESTADO: ESPERA TRIAGE
-              small Por favor, aguarde en la sala hasta ser llamado por enfermería.
+              small Por favor, aguarde en la sala.
 
-          // Botones de Acción
           .p-4.text-center
             button.btn.btn-outline-primary.me-2(onclick="window.print()")
               i.bi.bi-printer.me-1

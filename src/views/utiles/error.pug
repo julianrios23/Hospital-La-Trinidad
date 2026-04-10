@@ -1,4 +1,4 @@
-extends layout
+extends ../layout
 
 block content
   .row.justify-content-center.mt-5
@@ -7,7 +7,7 @@ block content
         .card-body.p-5
           i.bi.bi-exclamation-triangle.text-danger.display-1
           h2.mt-4 Ups! Algo salió mal
-          p.text-muted= mensaje || "No pudimos procesar la solicitud en este momento."
+          p.text-muted= mensaje || "No pudimos procesar la solicitud."
           hr
           .d-grid
             a.btn.btn-outline-secondary(href="/") 
