@@ -1,0 +1,23 @@
+/* Colores de Triage */
+.triage-1 { border-left: 8px solid #dc3545; } /* Emergencia - Rojo */
+.triage-2 { border-left: 8px solid #fd7e14; } /* Muy Urgente - Naranja */
+.triage-3 { border-left: 8px solid #ffc107; } /* Urgente - Amarillo */
+.triage-4 { border-left: 8px solid #198754; } /* Menos Urgente - Verde */
+.triage-5 { border-left: 8px solid #0dcaf0; } /* No Urgente - Azul */
+
+/* Animación para el badge de Guardia Activa */
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+/* Efecto para el ticket de éxito */
+.card-ticket {
+  background-image: radial-gradient(circle at 0 100%, transparent 10px, #fff 10px),
+                    radial-gradient(circle at 100% 100%, transparent 10px, #fff 10px);
+}

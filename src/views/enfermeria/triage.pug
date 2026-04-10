@@ -1,0 +1,63 @@
+extends layout
+
+block content
+  h4.mb-4 
+    i.bi.bi-heart-pulse-fill.text-danger.me-2
+    | Panel de Triage (Enfermería)
+
+  .row
+    // Lista de espera a la izquierda
+    .col-md-4
+      .card.border-0.shadow-sm
+        .card-header.bg-white.fw-bold Pacientes en Espera
+        .list-group.list-group-flush
+          each paciente in listaEspera
+            a.list-group-item.list-group-item-action(href=`/triage/${paciente.id_admision}`)
+              .d-flex.w-100.justify-content-between
+                h6.mb-1= `${paciente.apellido}, ${paciente.nombre}`
+                small.text-muted= paciente.hora_ingreso
+              small= `DNI: ${paciente.dni}`
+
+    // Formulario de Triage a la derecha
+    .col-md-8
+      if seleccionado
+        .card.border-0.shadow-sm
+          .card-body
+            h5.card-title.text-primary Atención: #{seleccionado.apellido}, #{seleccionado.nombre}
+            hr
+            form(action="/guardar-triage", method="POST")
+              input(type="hidden", name="id_admision", value=seleccionado.id_admision)
+              
+              .row.g-3
+                .col-md-6
+                  label.form-label Clasificación de Riesgo
+                  select.form-select.border-primary(name="prioridad", required)
+                    option(value="1") 🔴 Nivel 1 - Emergencia (Riesgo Vital)
+                    option(value="2") 🟠 Nivel 2 - Muy Urgente
+                    option(value="3") 🟡 Nivel 3 - Urgente
+                    option(value="4") 🟢 Nivel 4 - Menos Urgente
+                    option(value="5") 🔵 Nivel 5 - No Urgente
+                
+                .col-md-3
+                  label.form-label Presión Art.
+                  input.form-control(type="text", name="presion", placeholder="120/80")
+                .col-md-3
+                  label.form-label Temp. (°C)
+                  input.form-control(type="number", step="0.1", name="temperatura")
+                
+                .col-md-4
+                  label.form-label Frec. Cardíaca
+                  input.form-control(type="number", name="frecuencia")
+                .col-md-4
+                  label.form-label Sat. Oxígeno (%)
+                  input.form-control(type="number", name="saturacion")
+                
+                .col-12
+                  label.form-label Observaciones de Enfermería
+                  textarea.form-control(name="observaciones", rows="3")
+
+              button.btn.btn-primary.mt-4.w-100(type="submit") Enviar a Espera Médica
+      else
+        .text-center.py-5.text-muted
+          i.bi.bi-arrow-left-circle.display-1
+          p.mt-3 Seleccione un paciente de la lista para iniciar el triage.

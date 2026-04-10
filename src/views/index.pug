@@ -5,7 +5,69 @@ block content
     .col-md-6
       .card.shadow-sm
         .card-header.bg-primary.text-white Admisión de Paciente
-        .card-body
+        .card-bodyextends layout
+
+block content
+  .row.mb-4
+    .col-12
+      nav(aria-label="breadcrumb")
+        ol.breadcrumb
+          li.breadcrumb-item.active(aria-current="page") Admisión de Pacientes
+  
+  .row.justify-content-center
+    .col-md-8.col-lg-6
+      .card.border-0.shadow-lg
+        .card-header.bg-white.py-3
+          h5.card-title.mb-0.text-primary
+            i.bi.bi-search.me-2
+            | Iniciar Nueva Atención
+        .card-body.p-4
+          p.text-muted Ingrese el número de documento para verificar si el paciente ya posee historial en La Trinidad.
+          
+          form(action="/buscar-paciente", method="POST")
+            .mb-4
+              label.form-label.fw-bold(for="dni") DNI del Paciente
+              .input-group.input-group-lg
+                span.input-group-text.bg-light
+                  i.bi.bi-person-badge
+                input#dni.form-control(
+                  type="text", 
+                  name="dni", 
+                  placeholder="Sin puntos ni espacios", 
+                  required, 
+                  autofocus
+                )
+            
+            .d-grid.gap-2
+              button.btn.btn-primary.btn-lg(type="submit")
+                i.bi.bi-arrow-right-circle.me-2
+                | Verificar y Continuar
+        
+        .card-footer.bg-light.text-center.py-3
+          small.text-muted
+            i.bi.bi-info-circle.me-1
+            | Si el paciente no existe, el sistema permitirá el registro automático.
+
+  // Sección Informativa de la Guardia (Opcional)
+  .row.mt-5
+    .col-md-4
+      .card.text-center.border-0.bg-white.p-3.mb-3
+        .display-6.text-primary
+          i.bi.bi-people
+        h6.mt-2 Pacientes en Espera
+        h3 12
+    .col-md-4
+      .card.text-center.border-0.bg-white.p-3.mb-3
+        .display-6.text-warning
+          i.bi.bi-hourglass-split
+        h6.mt-2 Promedio Espera
+        h3 15 min
+    .col-md-4
+      .card.text-center.border-0.bg-white.p-3.mb-3
+        .display-6.text-success
+          i.bi.bi-check2-circle
+        h6.mt-2 Atendidos Hoy
+        h3 45
           form(action="/buscar-paciente", method="POST")
             .mb-3
               label.form-label(for="dni") Ingrese DNI del Paciente

@@ -3,25 +3,52 @@ html(lang="es")
   head
     meta(charset="UTF-8")
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
-    title Clínica La Trinidad - Sistema de Guardia
-    // Bootstrap CSS
+    title Sistema HIS - Hospital La Trinidad
+    // Bootstrap 5 CSS
     link(href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css", rel="stylesheet")
-    // Estilos personalizados
+    // Bootstrap Icons
+    link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css")
     style.
-      body { background-color: #f8f9fa; }
-      .navbar { background-color: #004a99; }
-      .card-header { font-weight: bold; }
+      :root { --clinica-blue: #004a99; --clinica-green: #28a745; }
+      body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+      .navbar { background-color: var(--clinica-blue) !important; box-shadow: 0 2px 4px rgba(0,0,0,.1); }
+      .nav-link { font-weight: 500; transition: all 0.3s; }
+      .nav-link:hover { background-color: rgba(255,255,255,0.1); border-radius: 5px; }
+      .main-container { padding-top: 30px; padding-bottom: 50px; }
+      .footer { background: #fff; border-top: 1px solid #dee2e6; padding: 15px 0; font-size: 0.9rem; }
   body
-    nav.navbar.navbar-expand-lg.navbar-dark.mb-4
+    nav.navbar.navbar-expand-lg.navbar-dark.sticky-top
       .container
-        a.navbar-brand(href="/") 🏥 Clínica La Trinidad
-        .navbar-nav
-          a.nav-link(href="/") Ventanilla
-          a.nav-link(href="/triage") Triage
-          a.nav-link(href="/medico") Médicos
+        a.navbar-brand(href="/")
+          i.bi.bi-hospital.me-2
+          | La Trinidad HIS
+        button.navbar-toggler(type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav")
+          span.navbar-toggler-icon
+        #navbarNav.collapse.navbar-collapse
+          ul.navbar-nav.ms-auto
+            li.nav-item
+              a.nav-link(href="/")
+                i.bi.bi-person-vcard.me-1
+                | Admisión (Ventanilla)
+            li.nav-item
+              a.nav-link(href="/triage")
+                i.bi.bi-heart-pulse.me-1
+                | Enfermería (Triage)
+            li.nav-item
+              a.nav-link(href="/atencion-medica")
+                i.bi.bi-clipboard2-pulse.me-1
+                | Atención Médica
+            li.nav-item.ms-lg-3
+              span.badge.bg-danger.d-flex.align-items-center.p-2
+                i.bi.bi-dot.animate-pulse
+                | Guardia Activa
 
-    .container
+    .container.main-container
       block content
 
-    // Bootstrap JS
+    footer.footer.mt-auto
+      .container.text-center.text-muted
+        | © 2026 Hospital La Trinidad - Gestión de Guardia v1.0
+
+    // Bootstrap JS Bundle
     script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js")

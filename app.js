@@ -7,21 +7,12 @@ const app = express();
 
 // Configuración de Pug
 app.set('view engine', 'pug');
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(__dirname, 'src/views'));
 
 // Middleware
 app.use(express.urlencoded({ extended: true })); // Para leer formularios
 app.use(express.static(path.join(__dirname, 'public'))); // Archivos CSS/JS
 
-// Ruta de prueba para verificar que la DB y el servidor hablan
-app.get('/', async (req, res) => {
-    try {
-        const [rows] = await db.query('SELECT * FROM obras_sociales LIMIT 5');
-        res.send(`<h1>Servidor Funcionando</h1><p>Conexión a DB OK. Obras sociales encontradas: ${rows.length}</p>`);
-    } catch (error) {
-        res.status(500).send("Error conectando a la base de datos: " + error.message);
-    }
-});
 
 // Ruta Principal: Ventanilla
 app.get('/', (req, res) => {

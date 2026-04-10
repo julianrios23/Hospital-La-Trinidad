@@ -1,0 +1,60 @@
+extends layout
+
+block content
+  h4.mb-4 
+    i.bi.bi-stethoscope.text-primary.me-2
+    | Consultorio de Guardia
+
+  .row
+    .col-12
+      .card.border-0.shadow-sm.mb-4
+        .card-header.bg-white.fw-bold Lista de Pacientes por Prioridad
+        .table-responsive
+          table.table.table-hover.align-middle
+            thead.table-light
+              tr
+                th Prioridad
+                th Paciente
+                th Espera
+                th Signos Vitales (Triage)
+                th Acción
+            tbody
+              each p in pacientesMed
+                tr
+                  td
+                    span.badge(class=`bg-${p.prioridad == 1 ? 'danger' : p.prioridad == 2 ? 'warning' : 'info'}`) 
+                      | Nivel #{p.prioridad}
+                  td.fw-bold= `${p.apellido}, ${p.nombre}`
+                  td= p.tiempo_espera
+                  td
+                    small.text-muted 
+                      | TA: #{p.presion} | Temp: #{p.temperatura}° | Sat: #{p.saturacion}%
+                  td
+                    a.btn.btn-outline-primary.btn-sm(href=`/atender/${p.id_admision}`) Atender
+
+  if consultaActiva
+    .card.border-primary.shadow-lg
+      .card-body
+        h5.text-primary Diagnóstico y Tratamiento: #{consultaActiva.paciente}
+        form(action="/finalizar-atencion", method="POST")
+          input(type="hidden", name="id_admision", value=consultaActiva.id_admision)
+          
+          .mb-3
+            label.form-label Evolución y Diagnóstico
+            textarea.form-control(name="diagnostico", rows="4", required)
+          
+          .row
+            .col-md-6.mb-3
+              label.form-label Medicación Suministrada / Recetada
+              textarea.form-control(name="medicacion", rows="3")
+            .col-md-6.mb-3
+              label.form-label Indicaciones al Alta
+              textarea.form-control(name="indicaciones", rows="3")
+          
+          .form-check.form-switch.mb-4
+            input.form-check-input#internacion(type="checkbox", name="internacion")
+            label.form-check-label.fw-bold.text-danger(for="internacion") Solicitar Internación (v2.0)
+
+          .d-flex.justify-content-between
+            button.btn.btn-secondary(type="button") Guardar Borrador
+            button.btn.btn-primary.btn-lg.px-5(type="submit") Finalizar Atención y Dar Alta

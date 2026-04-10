@@ -1,0 +1,28 @@
+extends layout
+
+block content
+  .row.justify-content-center
+    .col-md-8
+      .card.shadow-sm
+        .card-header.bg-primary.text-white
+          h5.mb-0 Confirmar Ingreso: #{paciente.apellido}, #{paciente.nombre}
+        .card-body
+          form(action="/crear-admision", method="POST")
+            input(type="hidden", name="paciente_id", value=paciente.id_paciente)
+            
+            .row.mb-3
+              .col-md-6
+                label.form-label Obra Social Actual
+                select.form-select(name="obra_social_id")
+                  each os in obrasSociales
+                    option(value=os.id_obra_social, selected=(os.id_obra_social == paciente.obra_social_id))= os.nombre_obra_social
+              .col-md-6
+                label.form-label Teléfono de Contacto
+                input.form-control(type="text", name="telefono", value=paciente.telefono)
+
+            .mb-3
+              label.form-label Motivo de Consulta (Breve)
+              textarea.form-control(name="motivo_consulta", rows="3", required, placeholder="Ej: Control de tensión, traumatismo en mano...")
+
+            .d-grid
+              button.btn.btn-primary.btn-lg(type="submit") Iniciar Proceso de Guardia

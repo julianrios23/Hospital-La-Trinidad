@@ -1,0 +1,50 @@
+extends layout
+
+block content
+  .row.justify-content-center
+    .col-md-10
+      .card.shadow-sm.border-0
+        .card-header.bg-success.text-white.py-3
+          h5.mb-0 
+            i.bi.bi-person-plus-fill.me-2
+            | Registrar Nuevo Paciente en La Trinidad
+        .card-body.p-4
+          form(action="/guardar-paciente", method="POST")
+            .row
+              h6.text-primary.border-bottom.pb-2 Datos Personales
+              .col-md-4.mb-3
+                label.form-label DNI
+                input.form-control.bg-light(type="text", name="dni", value=dni, readonly)
+              .col-md-4.mb-3
+                label.form-label Nombre
+                input.form-control(type="text", name="nombre", required)
+              .col-md-4.mb-3
+                label.form-label Apellido
+                input.form-control(type="text", name="apellido", required)
+              
+              .col-md-4.mb-3
+                label.form-label Fecha de Nacimiento
+                input.form-control(type="date", name="fecha_nacimiento", required)
+              .col-md-4.mb-3
+                label.form-label Género
+                select.form-select(name="genero")
+                  option(value="Masculino") Masculino
+                  option(value="Femenino") Femenino
+                  option(value="Otro") Otro
+              .col-md-4.mb-3
+                label.form-label Obra Social
+                select.form-select(name="obra_social_id")
+                  each os in obrasSociales
+                    option(value=os.id_obra_social)= os.nombre_obra_social
+
+            .row.mt-3
+              h6.text-primary.border-bottom.pb-2 Motivo de Ingreso a Guardia
+              .col-12.mb-3
+                label.form-label Descripción breve del síntoma (Ventanilla)
+                textarea.form-control(name="motivo_consulta", rows="2", placeholder="Ej: Dolor abdominal agudo...", required)
+
+            .d-flex.justify-content-end.gap-2.mt-4
+              a.btn.btn-light(href="/") Cancelar
+              button.btn.btn-success.px-5(type="submit") 
+                i.bi.bi-check-lg.me-1
+                | Confirmar Ingreso
