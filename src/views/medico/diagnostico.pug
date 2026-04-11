@@ -89,6 +89,47 @@ block content
                 button.btn.btn-outline-primary(type="button")
                   i.bi.bi-save.me-2
                   | Guardar Borrador
-                button.btn.btn-success.btn-lg.px-4(type="submit")
+                button.btn.btn-success.btn-lg.px-4(type="submit", id="btnFinalizar")
                   i.bi.bi-check-circle.me-2
-                  | Finalizar Atención 
+                  | Finalizar Atención
+
+  // TOAST - Fin de Atención
+  .toast-container.position-fixed.top-50.start-50.p-3(style="transform: translate(-50%, -50%);")
+    #toastFinAtension.toast.bg-success.text-white(role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000")
+      .toast-header.bg-success.text-white
+        i.bi.bi-check-circle-fill.me-2
+        strong.me-auto La Trinidad HIS
+        small Atención Completada
+        button.btn-close.btn-close-white(type="button" data-bs-dismiss="toast" aria-label="Close")
+      .toast-body
+        p.mb-1
+          strong ✓ Atención médica finalizada exitosamente
+        p.mb-0.text-white-50
+          i.bi.bi-clock.me-1
+          | Redirigiendo en 
+          span#timerToast 5
+          |  segundos...
+
+  script.
+    document.getElementById('btnFinalizar').addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      // Mostrar el toast
+      const toastElement = document.getElementById('toastFinAtension');
+      const toast = new bootstrap.Toast(toastElement);
+      toast.show();
+      
+      // Contador de 5 segundos
+      let countdown = 5;
+      const timerElement = document.getElementById('timerToast');
+      
+      const interval = setInterval(() => {
+        countdown--;
+        if (timerElement) timerElement.textContent = countdown;
+        if (countdown <= 0) {
+          clearInterval(interval);
+          // Enviar el formulario después de 5 segundos
+          document.querySelector('form').submit();
+        }
+      }, 1000);
+    });

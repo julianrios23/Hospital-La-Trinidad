@@ -19,21 +19,46 @@ const getPacientesEnEspera = async () => {
     }
 };
 
+// Función auxiliar para obtener pacientes atendidos hoy
+const getPacientesAtendidosHoy = async () => {
+    try {
+        const [result] = await db.query(
+            `SELECT COUNT(*) as total FROM atenciones_medicas 
+             WHERE DATE(fecha_completada) = CURDATE()`
+        );
+        return result[0].total;
+    } catch (error) {
+        console.error('Error al contar pacientes atendidos hoy:', error);
+        return 0;
+    }
+};
+
+// Función auxiliar para generar promedio de espera aleatorio (30-45 minutos)
+const getPromedioEsperaAleatorio = () => {
+    return Math.floor(Math.random() * (45 - 30 + 1)) + 30;
+};
+
 const hospitalController = {
 
     // 0. Renderiza la vista principal (Buscador)
     renderIndex: async (req, res) => {
         try {
             const pacientesEnEspera = await getPacientesEnEspera();
+            const atendidosHoy = await getPacientesAtendidosHoy();
+            const promedioEspera = getPromedioEsperaAleatorio();
             res.render('index', {
                 pacienteNoEncontrado: false,
-                pacientesEnEspera: pacientesEnEspera
+                pacientesEnEspera: pacientesEnEspera,
+                atendidosHoy: atendidosHoy,
+                promedioEspera: promedioEspera
             });
         } catch (error) {
             console.error('Error al obtener pacientes en espera:', error);
             res.render('index', {
                 pacienteNoEncontrado: false,
-                pacientesEnEspera: 0
+                pacientesEnEspera: 0,
+                atendidosHoy: 0,
+                promedioEspera: 30
             });
         }
     },
