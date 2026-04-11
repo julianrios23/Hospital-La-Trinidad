@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const dotenv = require('dotenv');
+const session = require('express-session');
 const hospitalRoutes = require('./src/routes/hospitalRoutes');
 
 // Cargar variables de entorno
@@ -16,6 +17,17 @@ app.set('view engine', 'pug');
 // 2. Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'hospital-secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 24 * 60 * 60 * 1000 }
+}));
+
+app.use((req, res, next) => {
+    res.locals.user = req.session.user || null;
+    next();
+});
 
 // Configuración de archivos estáticos (CSS, Imágenes, JS del cliente)
 app.use(express.static(path.join(__dirname, 'src', 'public')));

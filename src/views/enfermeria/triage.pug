@@ -61,14 +61,14 @@ block content
                   input.form-control(type="text", name="presion", placeholder="120/80", maxlength="7")
                 .col-md-3
                   label.form-label.fw-bold Temp. (°C)
-                  input.form-control(type="number", step="0.1", name="temperatura", placeholder="36.5")
+                  input.form-control(type="number", step="0.1", name="temperatura", min="35", max="42", placeholder="36.5")
                 
                 .col-md-4
                   label.form-label.fw-bold Frec. Cardíaca (LPM)
-                  input.form-control(type="number", name="frecuencia")
+                  input.form-control(type="number", name="frecuencia", min="40", max="200", placeholder="Ej: 80")
                 .col-md-4
                   label.form-label.fw-bold Sat. Oxígeno (%)
-                  input.form-control(type="number", name="saturacion")
+                  input.form-control(type="number", name="saturacion", min="0", max="100", placeholder="Ej: 98")
                 
                 .col-12
                   label.form-label.fw-bold Observaciones de Enfermería (Triage)
@@ -119,5 +119,36 @@ block content
 
         prioridadSelect.addEventListener('change', updateSelectColor);
         updateSelectColor(); // Aplicar color inicial si hay selección
+      }
+
+      // Validación de rangos
+      const formulario = document.querySelector('form');
+      if (formulario) {
+        formulario.addEventListener('submit', function(e) {
+          const temp = document.querySelector('input[name="temperatura"]').value;
+          const freq = document.querySelector('input[name="frecuencia"]').value;
+          const sat = document.querySelector('input[name="saturacion"]').value;
+
+          // Validar temperatura
+          if (temp && (parseFloat(temp) < 35 || parseFloat(temp) > 42)) {
+            e.preventDefault();
+            alert('⚠️ Temperatura fuera de rango.\nRango válido: 35°C - 42°C');
+            return;
+          }
+
+          // Validar frecuencia cardíaca
+          if (freq && (parseInt(freq) < 40 || parseInt(freq) > 200)) {
+            e.preventDefault();
+            alert('⚠️ Frecuencia cardíaca fuera de rango.\nRango válido: 40 - 200 LPM');
+            return;
+          }
+
+          // Validar saturación
+          if (sat && (parseInt(sat) < 0 || parseInt(sat) > 100)) {
+            e.preventDefault();
+            alert('⚠️ Saturación de oxígeno fuera de rango.\nRango válido: 0% - 100%');
+            return;
+          }
+        });
       }
     });

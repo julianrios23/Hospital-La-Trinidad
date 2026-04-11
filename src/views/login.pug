@@ -1,0 +1,152 @@
+extends layout
+
+block content
+  // --- Contenedor de Login Centrado ---
+  .row.justify-content-center.align-items-center(style="min-height: 70vh;")
+    .col-md-6.col-lg-5
+     
+      // Formulario de Login
+      .card.border-0.shadow-lg
+        .card-header.bg-primary.py-4
+          h5.card-title.mb-0.text-white.text-center
+            i.bi.bi-lock.me-2
+            | Acceso al Sistema
+
+        .card-body.p-5
+          
+
+          form(action="/login", method="POST", id="loginForm")
+            // Campo Usuario/Email
+            .mb-4
+              label.form-label.fw-bold.text-dark(for="usuario") 
+                i.bi.bi-person.me-2
+                | Usuario o Email
+              .input-group.input-group-lg
+                span.input-group-text.bg-light
+                  i.bi.bi-person-circle
+                input#usuario.form-control(
+                  type="text", 
+                  name="usuario", 
+                  placeholder="Ingrese su usuario o email", 
+                  required, 
+                  autofocus
+                )
+
+            // Campo Contraseña
+            .mb-4
+              label.form-label.fw-bold.text-dark(for="password")
+                i.bi.bi-key.me-2
+                | Contraseña
+              .input-group.input-group-lg
+                span.input-group-text.bg-light
+                  i.bi.bi-lock
+                input#password.form-control(
+                  type="password", 
+                  name="password", 
+                  placeholder="Ingrese su contraseña", 
+                  required
+                )
+
+            // Checkbox Recordar
+            .form-check.mb-4
+              input.form-check-input#recordar(type="checkbox", name="recordar")
+              label.form-check-label.text-muted(for="recordar")
+                | Recordar mis credenciales
+
+            // Botón Login
+            .d-grid.gap-2.mb-3
+              button.btn.btn-primary.btn-lg.fw-bold(type="submit")
+                i.bi.bi-arrow-right-circle.me-2
+                | Ingresar al Sistema
+
+            // Link recuperar contraseña
+            .text-center
+              small.text-muted
+                a.text-decoration-none.text-primary(href="#" id="forgotPasswordLink") 
+                  | ¿Olvidó su contraseña?
+
+        .card-footer.bg-light.text-center.py-3.border-top
+          small.text-muted
+            i.bi.bi-info-circle.me-1
+            | Sistema seguro - Acceso restringido
+            br
+            | Diseñado por Julian Rios © 2026
+
+  // TOAST - Error de Login
+  if error
+    .toast-container.position-fixed.bottom-0.end-0.p-3
+      #toastError.toast.show.bg-danger.text-white(role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false")
+        .toast-header.bg-danger.text-white
+          i.bi.bi-exclamation-triangle-fill.me-2
+          strong.me-auto La Trinidad HIS
+          small Error
+          button.btn-close.btn-close-white(type="button" data-bs-dismiss="toast" aria-label="Close")
+        .toast-body
+          p.mb-0
+            strong 
+              i.bi.bi-x-circle.me-1
+              | #{error}
+
+  // TOAST - Olvidó contraseña
+  .toast-container.position-fixed.bottom-0.end-0.p-3
+    #toastForgotPassword.toast.bg-info.text-white(role="alert" aria-live="assertive" aria-atomic="true")
+      .toast-header.bg-info.text-white
+        i.bi.bi-info-circle-fill.me-2
+        strong.me-auto Hospital La Trinidad 
+        small Información
+        button.btn-close.btn-close-white(type="button" data-bs-dismiss="toast" aria-label="Close")
+      .toast-body
+        p.mb-2
+          strong 
+            i.bi.bi-envelope.me-1
+            | Comuníquese con el administrador del sistema:
+        if adminData
+          p.mb-1
+            strong #{adminData.nombre} #{adminData.apellido}
+          if adminData.telefono
+            p.mb-1
+              i.bi.bi-telephone.me-2
+              | Teléfono: #{adminData.telefono}
+          if adminData.email
+            p.mb-0
+              i.bi.bi-envelope-at.me-2
+              | Email: #{adminData.email}
+        else
+          p.mb-0.text-warning
+            i.bi.bi-exclamation-triangle.me-1
+            | No se pudo obtener la información del administrador
+
+  script.
+    // Auto-focus al campo de usuario
+    document.getElementById('usuario').focus();
+
+    // Validación de formulario
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      const usuario = document.getElementById('usuario').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!usuario) {
+        e.preventDefault();
+        alert('Por favor ingrese su usuario o email');
+        return;
+      }
+
+      if (!password) {
+        e.preventDefault();
+        alert('Por favor ingrese su contraseña');
+        return;
+      }
+    });
+
+    // Manejar clic en "Olvidó su contraseña"
+    document.getElementById('forgotPasswordLink').addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      // Mostrar toast con configuración personalizada (10 segundos)
+      const toastElement = document.getElementById('toastForgotPassword');
+      const toast = new bootstrap.Toast(toastElement, {
+        autohide: true,
+        delay: 10000  // 10 segundos
+      });
+      toast.show();
+    });

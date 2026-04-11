@@ -1,0 +1,201 @@
+extends ../layout
+
+block content
+  .container.mt-5
+    .row.justify-content-center
+      .col-md-8
+        .card.shadow-lg
+          .card-header.bg-warning.text-dark
+            h4.mb-0
+              i.bi.bi-pencil-square.me-3
+              | Editar Usuario: #{usuario.nombre} #{usuario.apellido}
+
+          .card-body.p-4
+            // Mensaje de error
+            if error
+              .alert.alert-danger.alert-dismissible.fade.show
+                i.bi.bi-exclamation-triangle.me-2
+                strong Error:
+                | #{error}
+                button.btn-close(type="button" data-bs-dismiss="alert")
+
+            form(method="POST" action=`/admin/usuarios/${usuario.id_usuario}/actualizar` id="editarUsuarioForm")
+              .row.g-3
+                // Nombre
+                .col-md-6
+                  label.form-label.fw-bold(for="nombre")
+                    i.bi.bi-person.me-2
+                    | Nombre *
+                  input#nombre.form-control(
+                    type="text"
+                    name="nombre"
+                    value=usuario.nombre
+                    required
+                    pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+"
+                    title="Solo letras y espacios"
+                  )
+
+                // Apellido
+                .col-md-6
+                  label.form-label.fw-bold(for="apellido")
+                    i.bi.bi-person.me-2
+                    | Apellido *
+                  input#apellido.form-control(
+                    type="text"
+                    name="apellido"
+                    value=usuario.apellido
+                    required
+                    pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+"
+                    title="Solo letras y espacios"
+                  )
+
+                // DNI
+                .col-md-6
+                  label.form-label.fw-bold(for="dni")
+                    i.bi.bi-credit-card.me-2
+                    | DNI *
+                  input#dni.form-control(
+                    type="text"
+                    name="dni"
+                    value=usuario.dni
+                    required
+                    pattern="\\d{7,15}"
+                    title="Solo números, 7-15 dígitos"
+                    maxlength="15"
+                  )
+
+                // Teléfono
+                .col-md-6
+                  label.form-label.fw-bold(for="telefono")
+                    i.bi.bi-telephone.me-2
+                    | Teléfono
+                  input#telefono.form-control(
+                    type="tel"
+                    name="telefono"
+                    value=usuario.telefono || ''
+                    pattern="\\d{10,15}"
+                    title="Solo números, 10-15 dígitos"
+                  )
+
+                // Email
+                .col-md-6
+                  label.form-label.fw-bold(for="email")
+                    i.bi.bi-envelope.me-2
+                    | Email *
+                  input#email.form-control(
+                    type="email"
+                    name="email"
+                    value=usuario.email
+                    required
+                  )
+
+                // Rol
+                .col-md-6
+                  label.form-label.fw-bold(for="rol")
+                    i.bi.bi-shield.me-2
+                    | Rol *
+                  select#rol.form-select(name="rol" required)
+                    option(value="" disabled) Seleccione un rol...
+                    option(value="administrador" selected=usuario.rol === 'administrador') 👑 Administrador
+                    option(value="medico" selected=usuario.rol === 'medico') 🩺 Médico
+                    option(value="enfermeria" selected=usuario.rol === 'enfermeria') 💊 Enfermería
+                    option(value="admision_guardia" selected=usuario.rol === 'admision_guardia') 📋 Admisión Guardia
+                    option(value="admision_internacion" selected=usuario.rol === 'admision_internacion') 🏥 Admisión Internación
+
+                // Médico asignado (campo deshabilitado)
+                .col-md-6(id="medicoContainer" style="display: none;")
+                  label.form-label.fw-bold(for="id_medico")
+                    i.bi.bi-person-check.me-2
+                    | Médico Asignado
+                  select#id_medico.form-select(name="id_medico")
+                    option(value="" selected=!usuario.id_medico) Sin asignar
+                    each medico in medicos
+                      option(value=medico.id_usuario selected=usuario.id_medico == medico.id_usuario)= `${medico.nombre} ${medico.apellido}`
+
+                // Estado
+                .col-md-6
+                  label.form-label.fw-bold(for="estado")
+                    i.bi.bi-toggle-on.me-2
+                    | Estado
+                  select.form-select(name="estado" disabled)
+                    option(value="activo" selected=usuario.estado === 'activo') ✅ Activo
+                    option(value="inactivo" selected=usuario.estado === 'inactivo') ❌ Inactivo
+                  small.form-text.text-muted
+                    | Use los botones de acción para cambiar el estado
+
+                // Nueva Contraseña (opcional)
+                .col-md-6
+                  label.form-label.fw-bold(for="password")
+                    i.bi.bi-key.me-2
+                    | Nueva Contraseña
+                    small.text-muted (opcional)
+                  input#password.form-control(
+                    type="password"
+                    name="password"
+                    placeholder="Dejar vacío para mantener actual"
+                    minlength="6"
+                  )
+                  small.form-text.text-muted
+                    | Solo si desea cambiar la contraseña actual
+
+              // Información adicional
+              .mt-3.p-3.bg-light.rounded
+                h6.mb-2
+                  i.bi.bi-info-circle.me-2
+                  | Información del Usuario
+                .row
+                  .col-md-6
+                    small.text-muted
+                      strong ID:
+                      | #{usuario.id_usuario}
+                  .col-md-6
+                    small.text-muted
+                      strong Registrado:
+                      | #{new Date(usuario.created_at || new Date()).toLocaleDateString('es-ES')}
+
+              // Botones
+              .d-flex.justify-content-between.mt-4
+                a.btn.btn-secondary(href="/admin/usuarios")
+                  i.bi.bi-arrow-left.me-2
+                  | Volver
+                button.btn.btn-warning(type="submit")
+                  i.bi.bi-check-circle.me-2
+                  | Actualizar Usuario
+
+  script.
+    document.addEventListener('DOMContentLoaded', function() {
+      const rolSelect = document.getElementById('rol');
+      const medicoContainer = document.getElementById('medicoContainer');
+      const form = document.getElementById('editarUsuarioForm');
+
+      // Mostrar/ocultar campo de médico asignado
+      rolSelect.addEventListener('change', function() {
+        // El campo de médico asignado no se muestra para ningún rol actualmente
+        // Se mantiene oculto por defecto
+        medicoContainer.style.display = 'none';
+        document.getElementById('id_medico').required = false;
+      });
+
+      // Validación de contraseña (solo si se ingresa)
+      form.addEventListener('submit', function(e) {
+        const password = document.getElementById('password').value;
+
+        if (password && password.length < 6) {
+          e.preventDefault();
+          alert('❌ La nueva contraseña debe tener al menos 6 caracteres');
+          return;
+        }
+      });
+
+      // Formatear teléfono mientras se escribe
+      const telefonoInput = document.getElementById('telefono');
+      telefonoInput.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '');
+      });
+
+      // Formatear DNI mientras se escribe
+      const dniInput = document.getElementById('dni');
+      dniInput.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '');
+      });
+    });

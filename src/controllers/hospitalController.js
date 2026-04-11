@@ -1,4 +1,5 @@
 const db = require('../../config/db');
+const bcrypt = require('bcrypt');
 
 // --- REGLAS DE VALIDACIÓN (Regex para Backend) ---
 const regexLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
@@ -40,7 +41,186 @@ const getPromedioEsperaAleatorio = () => {
 
 const hospitalController = {
 
-    // 0. Renderiza la vista principal (Buscador)
+    // 0. Renderiza la vista de login al iniciar la app
+    renderLogin: async (req, res) => {
+        if (req.session && req.session.user) {
+            return res.redirect('/');
+        }
+
+        try {
+            // Obtener datos del administrador para el toast de recuperación de contraseña
+            const [adminResult] = await db.query(
+                'SELECT nombre, apellido, telefono, email FROM usuarios WHERE rol = ? AND estado = ? LIMIT 1',
+                ['administrador', 'activo']
+            );
+
+            const adminData = adminResult.length > 0 ? adminResult[0] : null;
+
+            res.render('login', { adminData });
+        } catch (error) {
+            console.error('Error al obtener datos del administrador:', error);
+            res.render('login', { adminData: null });
+        }
+    },
+
+    loginUser: async (req, res) => {
+        const { usuario, password } = req.body;
+
+        // Validar que el usuario y la contraseña hayan sido enviados.
+        if (!usuario || !password) {
+            return res.render('login', { error: 'Ingrese usuario y contraseña.' });
+        }
+
+        // Validar longitud mínima de contraseña
+        if (password.length < 6) {
+            return res.render('login', { error: 'Contraseña inválida.' });
+        }
+
+        try {
+            // Buscar al usuario activo por email o DNI en la tabla usuarios.
+            // IMPORTANTE: Incluir el campo password para validar con bcrypt
+            const [usuarios] = await db.query(
+                `SELECT id_usuario, nombre, apellido, dni, email, rol, password
+                 FROM usuarios
+                 WHERE estado = 'activo' AND (email = ? OR dni = ?)
+                 LIMIT 1`,
+                [usuario, usuario]
+            );
+
+            // Si no existe o está inactivo, devolver mensaje de error.
+            if (!usuarios.length) {
+                return res.render('login', { error: 'Usuario o contraseña incorrectos.' });
+            }
+
+            const usuarioEncontrado = usuarios[0];
+
+            // Comparar la contraseña ingresada con el hash almacenado en la BD
+            const passwordValida = await bcrypt.compare(password, usuarioEncontrado.password);
+
+            if (!passwordValida) {
+                return res.render('login', { error: 'Usuario o contraseña incorrectos.' });
+            }
+
+            // Guardar datos esenciales del usuario en la sesión.
+            req.session.user = {
+                id: usuarioEncontrado.id_usuario,
+                nombre: usuarioEncontrado.nombre,
+                apellido: usuarioEncontrado.apellido,
+                dni: usuarioEncontrado.dni,
+                email: usuarioEncontrado.email,
+                rol: usuarioEncontrado.rol
+            };
+
+            // Redirigir según el rol del usuario tras el login.
+            let redirectPath = '/';
+            if (usuarioEncontrado.rol === 'administrador') {
+                redirectPath = '/admin/usuarios';
+            } else if (usuarioEncontrado.rol === 'enfermeria') {
+                redirectPath = '/triage';
+            } else if (usuarioEncontrado.rol === 'medico') {
+                redirectPath = '/atencion-medica';
+            }
+            
+            return res.redirect(redirectPath);
+        } catch (error) {
+            console.error('Error al autenticar usuario:', error);
+            return res.render('login', { error: 'Error al autenticar usuario. Intente de nuevo.' });
+        }
+    },
+
+    logoutUser: (req, res) => {
+        req.session.destroy(() => {
+            res.redirect('/login');
+        });
+    },
+
+    // Renderiza la vista de cambio de contraseña
+    renderCambiarPassword: (req, res) => {
+        res.render('cambiar-password', { user: req.session.user });
+    },
+
+    // Procesa el cambio de contraseña
+    cambiarPassword: async (req, res) => {
+        const { passwordActual, passwordNueva, passwordConfirmar } = req.body;
+        const userId = req.session.user.id;
+
+        // Validaciones
+        if (!passwordActual || !passwordNueva || !passwordConfirmar) {
+            return res.render('cambiar-password', { 
+                user: req.session.user, 
+                error: 'Todos los campos son requeridos.' 
+            });
+        }
+
+        if (passwordNueva.length < 6) {
+            return res.render('cambiar-password', { 
+                user: req.session.user, 
+                error: 'La contraseña debe tener al menos 6 caracteres.' 
+            });
+        }
+
+        if (passwordNueva !== passwordConfirmar) {
+            return res.render('cambiar-password', { 
+                user: req.session.user, 
+                error: 'Las contraseñas no coinciden.' 
+            });
+        }
+
+        if (passwordActual === passwordNueva) {
+            return res.render('cambiar-password', { 
+                user: req.session.user, 
+                error: 'La contraseña nueva debe ser diferente a la actual.' 
+            });
+        }
+
+        try {
+            // Obtener la contraseña actual del usuario
+            const [usuarios] = await db.query(
+                'SELECT password FROM usuarios WHERE id_usuario = ?',
+                [userId]
+            );
+
+            if (!usuarios.length) {
+                return res.render('cambiar-password', { 
+                    user: req.session.user, 
+                    error: 'Usuario no encontrado.' 
+                });
+            }
+
+            // Validar que la contraseña actual sea correcta
+            const { hashPassword, validatePassword } = require('../helpers/passwordHelper');
+            const passwordEsCorrecto = await validatePassword(passwordActual, usuarios[0].password);
+
+            if (!passwordEsCorrecto) {
+                return res.render('cambiar-password', { 
+                    user: req.session.user, 
+                    error: 'La contraseña actual es incorrecta.' 
+                });
+            }
+
+            // Hashear la nueva contraseña
+            const passwordHasheada = await hashPassword(passwordNueva);
+
+            // Actualizar en la BD
+            await db.query(
+                'UPDATE usuarios SET password = ? WHERE id_usuario = ?',
+                [passwordHasheada, userId]
+            );
+
+            return res.render('cambiar-password', { 
+                user: req.session.user, 
+                exito: 'Contraseña actualizada exitosamente.' 
+            });
+        } catch (error) {
+            console.error('Error al cambiar contraseña:', error);
+            return res.render('cambiar-password', { 
+                user: req.session.user, 
+                error: 'Error al actualizar la contraseña. Intente de nuevo.' 
+            });
+        }
+    },
+
+    // 1. Renderiza la vista principal (Buscador)
     renderIndex: async (req, res) => {
         try {
             const pacientesEnEspera = await getPacientesEnEspera();
@@ -215,6 +395,19 @@ const hospitalController = {
             return res.render('utiles/error', { mensaje: 'Faltan datos obligatorios para guardar el triage.' });
         }
 
+        // Validaciones de rango
+        if (temperatura && (isNaN(temperatura) || temperatura < 35 || temperatura > 42)) {
+            return res.render('utiles/error', { mensaje: 'La temperatura debe estar entre 35°C y 42°C.' });
+        }
+
+        if (frecuencia && (isNaN(frecuencia) || frecuencia < 40 || frecuencia > 200)) {
+            return res.render('utiles/error', { mensaje: 'La frecuencia cardíaca debe estar entre 40 y 200 bpm.' });
+        }
+
+        if (saturacion && (isNaN(saturacion) || saturacion < 0 || saturacion > 100)) {
+            return res.render('utiles/error', { mensaje: 'La saturación de oxígeno debe estar entre 0 y 100%.' });
+        }
+
         try {
             await db.query(
                 `INSERT INTO atenciones_triage
@@ -228,7 +421,12 @@ const hospitalController = {
                 ['Espera Médico', id_admision]
             );
 
-            res.redirect('/atencion-medica');
+            // Redirigir según el rol del usuario
+            if (req.session.user.rol === 'enfermeria') {
+                res.redirect('/triage');
+            } else {
+                res.redirect('/atencion-medica');
+            }
         } catch (error) {
             console.error('Error al guardar triage:', error);
             res.render('utiles/error', { mensaje: 'Error técnico al guardar el triage.' });
@@ -338,6 +536,360 @@ const hospitalController = {
         } catch (error) {
             console.error('Error al guardar diagnóstico:', error);
             res.render('utiles/error', { mensaje: 'Error al guardar el diagnóstico médico.' });
+        }
+    },
+
+    // === MÉTODOS DE ADMINISTRACIÓN DE USUARIOS ===
+
+    // Panel principal de administración de usuarios
+    renderAdminUsuarios: async (req, res) => {
+        try {
+            const [usuarios] = await db.query(
+                'SELECT id_usuario, nombre, apellido, dni, email, telefono, rol, estado, created_at FROM usuarios ORDER BY created_at DESC'
+            );
+
+            res.render('admin/usuarios', { usuarios });
+        } catch (error) {
+            console.error('Error al obtener usuarios:', error);
+            res.render('utiles/error', { mensaje: 'Error al cargar la lista de usuarios.' });
+        }
+    },
+
+    // Formulario para crear nuevo usuario
+    renderNuevoUsuario: async (req, res) => {
+        try {
+            // Obtener lista de médicos para asignar
+            const [medicos] = await db.query(
+                'SELECT id_usuario, nombre, apellido FROM usuarios WHERE rol = ? AND estado = ?',
+                ['medico', 'activo']
+            );
+
+            // Obtener lista de especialidades
+            const [especialidades] = await db.query(
+                'SELECT IdEspecialidad, Nombre FROM especialidades WHERE estado = ? ORDER BY Nombre',
+                ['activa']
+            );
+
+            res.render('admin/nuevo-usuario', { medicos, especialidades });
+        } catch (error) {
+            console.error('Error al cargar formulario nuevo usuario:', error);
+            res.render('utiles/error', { mensaje: 'Error al cargar el formulario.' });
+        }
+    },
+
+    // Validar si un DNI ya existe antes de crear usuario
+    validarDniUsuario: async (req, res) => {
+        const { dni } = req.query;
+
+        if (!dni) {
+            return res.status(400).json({ error: 'DNI es requerido.' });
+        }
+
+        try {
+            const [existe] = await db.query(
+                'SELECT id_usuario FROM usuarios WHERE dni = ?',
+                [dni]
+            );
+
+            return res.json({ existe: existe.length > 0 });
+        } catch (error) {
+            console.error('Error al validar DNI:', error);
+            return res.status(500).json({ error: 'No se pudo validar el DNI.' });
+        }
+    },
+
+    // Validar si un email ya existe antes de crear usuario
+    validarEmailUsuario: async (req, res) => {
+        const { email } = req.query;
+
+        if (!email) {
+            return res.status(400).json({ error: 'Email es requerido.' });
+        }
+
+        try {
+            const [existe] = await db.query(
+                'SELECT id_usuario FROM usuarios WHERE email = ?',
+                [email]
+            );
+
+            return res.json({ existe: existe.length > 0 });
+        } catch (error) {
+            console.error('Error al validar email:', error);
+            return res.status(500).json({ error: 'No se pudo validar el email.' });
+        }
+    },
+
+    // Crear nuevo usuario
+    crearUsuario: async (req, res) => {
+        const { nombre, apellido, dni, telefono, email, password, rol, id_medico, matricula, id_especialidad } = req.body;
+
+        // Validaciones básicas
+        if (!nombre || !apellido || !dni || !email || !password || !rol) {
+            return res.render('admin/nuevo-usuario', {
+                error: 'Todos los campos obligatorios deben ser completados.',
+                medicos: [],
+                especialidades: []
+            });
+        }
+
+        if (!regexLetras.test(nombre) || !regexLetras.test(apellido)) {
+            return res.render('admin/nuevo-usuario', {
+                error: 'Nombre y apellido deben contener solo letras.',
+                medicos: [],
+                especialidades: []
+            });
+        }
+
+        if (!regexNumeros.test(dni) || dni.length < 7 || dni.length > 15) {
+            return res.render('admin/nuevo-usuario', {
+                error: 'DNI debe contener solo números (7-15 dígitos).',
+                medicos: [],
+                especialidades: []
+            });
+        }
+
+        if (password.length < 6) {
+            return res.render('admin/nuevo-usuario', {
+                error: 'La contraseña debe tener al menos 6 caracteres.',
+                medicos: [],
+                especialidades: []
+            });
+        }
+
+        // Validaciones específicas para médicos
+        if (rol === 'medico') {
+            if (!matricula || !id_especialidad) {
+                return res.render('admin/nuevo-usuario', {
+                    error: 'Para médicos, matrícula y especialidad son obligatorios.',
+                    medicos: [],
+                    especialidades: []
+                });
+            }
+
+            if (!regexNumeros.test(matricula) || matricula.length < 4 || matricula.length > 10) {
+                return res.render('admin/nuevo-usuario', {
+                    error: 'Matrícula debe contener solo números (4-10 dígitos).',
+                    medicos: [],
+                    especialidades: []
+                });
+            }
+        }
+
+        // Validaciones específicas para enfermería
+        if (rol === 'enfermeria' && !id_medico) {
+            return res.render('admin/nuevo-usuario', {
+                error: 'Para enfermería, debe seleccionar un médico asignado.',
+                medicos: [],
+                especialidades: []
+            });
+        }
+
+        try {
+            // Verificar si DNI o email ya existen
+            const [existe] = await db.query(
+                'SELECT id_usuario FROM usuarios WHERE dni = ? OR email = ?',
+                [dni, email]
+            );
+
+            if (existe.length > 0) {
+                return res.render('admin/nuevo-usuario', {
+                    error: 'Ya existe un usuario con ese DNI o email.',
+                    medicos: [],
+                    especialidades: []
+                });
+            }
+
+            // Si es médico, verificar que la matrícula no exista
+            if (rol === 'medico') {
+                const [matriculaExiste] = await db.query(
+                    'SELECT IdMedico FROM medicos WHERE Matricula = ?',
+                    [matricula]
+                );
+
+                if (matriculaExiste.length > 0) {
+                    return res.render('admin/nuevo-usuario', {
+                        error: 'Ya existe un médico con esa matrícula.',
+                        medicos: [],
+                        especialidades: []
+                    });
+                }
+            }
+
+            // Hashear contraseña
+            const { hashPassword } = require('../helpers/passwordHelper');
+            const passwordHasheada = await hashPassword(password);
+
+            let idMedicoAsignado = null;
+
+            // Si es médico, crear registro en tabla medicos primero
+            if (rol === 'medico') {
+                const [result] = await db.query(
+                    `INSERT INTO medicos (Nombre, Apellido, Matricula, IdEspecialidad, estado)
+                     VALUES (?, ?, ?, ?, 'activo')`,
+                    [nombre, apellido, matricula, id_especialidad]
+                );
+
+                idMedicoAsignado = result.insertId;
+            }
+
+            // Insertar usuario
+            await db.query(
+                `INSERT INTO usuarios (nombre, apellido, dni, telefono, email, password, rol, id_medico, estado)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'activo')`,
+                [nombre, apellido, dni, telefono || null, email, passwordHasheada, rol, idMedicoAsignado || id_medico || null]
+            );
+
+            res.redirect('/admin/usuarios');
+        } catch (error) {
+            console.error('Error al crear usuario:', error);
+            res.render('utiles/error', { mensaje: 'Error al crear el usuario.' });
+        }
+    },
+
+    // Formulario para editar usuario
+    renderEditarUsuario: async (req, res) => {
+        const { id } = req.params;
+
+        // Verificar que no sea el propio usuario administrador
+        if (req.session.user.id == id && req.session.user.rol === 'administrador') {
+            return res.redirect('/admin/usuarios');
+        }
+
+        try {
+            const [usuarios] = await db.query(
+                'SELECT id_usuario, nombre, apellido, dni, telefono, email, rol, id_medico, estado FROM usuarios WHERE id_usuario = ?',
+                [id]
+            );
+
+            if (!usuarios.length) {
+                return res.render('utiles/error', { mensaje: 'Usuario no encontrado.' });
+            }
+
+            // Obtener lista de médicos para asignar
+            const [medicos] = await db.query(
+                'SELECT id_usuario, nombre, apellido FROM usuarios WHERE rol = ? AND estado = ?',
+                ['medico', 'activo']
+            );
+
+            res.render('admin/editar-usuario', { usuario: usuarios[0], medicos });
+        } catch (error) {
+            console.error('Error al cargar usuario para editar:', error);
+            res.render('utiles/error', { mensaje: 'Error al cargar los datos del usuario.' });
+        }
+    },
+
+    // Actualizar usuario
+    actualizarUsuario: async (req, res) => {
+        const { id } = req.params;
+        const { nombre, apellido, dni, telefono, email, rol, id_medico, password } = req.body;
+
+        // Verificar que no sea el propio usuario administrador
+        if (req.session.user.id == id && req.session.user.rol === 'administrador') {
+            return res.redirect('/admin/usuarios');
+        }
+
+        // Validaciones
+        if (!nombre || !apellido || !dni || !email || !rol) {
+            return res.redirect(`/admin/usuarios/${id}/editar`);
+        }
+
+        if (!regexLetras.test(nombre) || !regexLetras.test(apellido)) {
+            return res.redirect(`/admin/usuarios/${id}/editar`);
+        }
+
+        if (!regexNumeros.test(dni) || dni.length < 7 || dni.length > 15) {
+            return res.redirect(`/admin/usuarios/${id}/editar`);
+        }
+
+        try {
+            // Verificar si DNI o email ya existen en otro usuario
+            const [existe] = await db.query(
+                'SELECT id_usuario FROM usuarios WHERE (dni = ? OR email = ?) AND id_usuario != ?',
+                [dni, email, id]
+            );
+
+            if (existe.length > 0) {
+                return res.redirect(`/admin/usuarios/${id}/editar`);
+            }
+
+            // Preparar consulta de actualización
+            let query, params;
+
+            if (password && password.length >= 6) {
+                // Actualizar con nueva contraseña
+                const { hashPassword } = require('../helpers/passwordHelper');
+                const passwordHasheada = await hashPassword(password);
+
+                query = `UPDATE usuarios SET nombre = ?, apellido = ?, dni = ?, telefono = ?, email = ?, rol = ?, id_medico = ?, password = ? WHERE id_usuario = ?`;
+                params = [nombre, apellido, dni, telefono || null, email, rol, id_medico || null, passwordHasheada, id];
+            } else {
+                // Actualizar sin cambiar contraseña
+                query = `UPDATE usuarios SET nombre = ?, apellido = ?, dni = ?, telefono = ?, email = ?, rol = ?, id_medico = ? WHERE id_usuario = ?`;
+                params = [nombre, apellido, dni, telefono || null, email, rol, id_medico || null, id];
+            }
+
+            await db.query(query, params);
+            res.redirect('/admin/usuarios');
+        } catch (error) {
+            console.error('Error al actualizar usuario:', error);
+            res.redirect(`/admin/usuarios/${id}/editar`);
+        }
+    },
+
+    // Eliminar usuario (borrado lógico - cambiar estado)
+    eliminarUsuario: async (req, res) => {
+        const { id } = req.params;
+
+        try {
+            // Verificar que no sea el propio usuario
+            if (req.session.user.id == id) {
+                return res.redirect('/admin/usuarios');
+            }
+
+            // Cambiar estado a inactivo (borrado lógico)
+            await db.query(
+                'UPDATE usuarios SET estado = ? WHERE id_usuario = ?',
+                ['inactivo', id]
+            );
+
+            res.redirect('/admin/usuarios');
+        } catch (error) {
+            console.error('Error al eliminar usuario:', error);
+            res.redirect('/admin/usuarios');
+        }
+    },
+
+    // Activar/Desactivar usuario
+    toggleEstadoUsuario: async (req, res) => {
+        const { id } = req.params;
+
+        try {
+            // Verificar que no sea el propio usuario
+            if (req.session.user.id == id) {
+                return res.redirect('/admin/usuarios');
+            }
+
+            // Obtener estado actual
+            const [usuario] = await db.query(
+                'SELECT estado FROM usuarios WHERE id_usuario = ?',
+                [id]
+            );
+
+            if (!usuario.length) {
+                return res.redirect('/admin/usuarios');
+            }
+
+            const nuevoEstado = usuario[0].estado === 'activo' ? 'inactivo' : 'activo';
+
+            await db.query(
+                'UPDATE usuarios SET estado = ? WHERE id_usuario = ?',
+                [nuevoEstado, id]
+            );
+
+            res.redirect('/admin/usuarios');
+        } catch (error) {
+            console.error('Error al cambiar estado de usuario:', error);
+            res.redirect('/admin/usuarios');
         }
     }
 };

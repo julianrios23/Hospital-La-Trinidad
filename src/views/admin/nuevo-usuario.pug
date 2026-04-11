@@ -1,0 +1,340 @@
+extends ../layout
+
+block content
+  .container.mt-5
+    .row.justify-content-center
+      .col-md-8
+        .card.shadow-lg
+          .card-header.bg-primary.text-white
+            h4.mb-0
+              i.bi.bi-person-plus.me-3
+              | Crear Nuevo Usuario
+
+          .card-body.p-4
+            // Mensaje de error
+            if error
+              .alert.alert-danger.alert-dismissible.fade.show
+                i.bi.bi-exclamation-triangle.me-2
+                strong Error:
+                | #{error}
+                button.btn-close(type="button" data-bs-dismiss="alert")
+
+            form(method="POST" action="/admin/usuarios/crear" id="crearUsuarioForm")
+              .row.g-3
+                // Rol
+                .col-md-6
+                  label.form-label.fw-bold(for="rol")
+                    i.bi.bi-shield.me-2
+                    | Rol *
+                  select#rol.form-select(name="rol" required)
+                    option(value="" disabled selected) Seleccione un rol...
+                    
+                    option(value="medico") 👤 Médico
+                    option(value="enfermeria") 💊 Enfermería
+                    option(value="admision_guardia") 📋 Admisión Guardia
+                    option(value="admision_internacion") 🏥 Admisión Internación
+
+                // Nombre
+                .col-md-6
+                  label.form-label.fw-bold(for="nombre")
+                    i.bi.bi-person.me-2
+                    | Nombre *
+                  input#nombre.form-control(
+                    type="text"
+                    name="nombre"
+                    placeholder="Ingrese el nombre"
+                    required
+                    pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+"
+                    title="Solo letras y espacios"
+                  )
+
+                // Apellido
+                .col-md-6
+                  label.form-label.fw-bold(for="apellido")
+                    i.bi.bi-person.me-2
+                    | Apellido *
+                  input#apellido.form-control(
+                    type="text"
+                    name="apellido"
+                    placeholder="Ingrese el apellido"
+                    required
+                    pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+"
+                    title="Solo letras y espacios"
+                  )
+
+                // DNI
+                .col-md-6
+                  label.form-label.fw-bold(for="dni")
+                    i.bi.bi-credit-card.me-2
+                    | DNI *
+                  input#dni.form-control(
+                    type="text"
+                    name="dni"
+                    placeholder="Ej: 12345678"
+                    required
+                    pattern="\\d{7,15}"
+                    title="Solo números, 7-15 dígitos"
+                    maxlength="15"
+                  )
+                  small#dniFeedback.form-text.text-danger.d-none
+                    | Este DNI ya está registrado. No se admiten duplicados.
+
+                // Teléfono
+                .col-md-6
+                  label.form-label.fw-bold(for="telefono")
+                    i.bi.bi-telephone.me-2
+                    | Teléfono
+                  input#telefono.form-control(
+                    type="tel"
+                    name="telefono"
+                    placeholder="Ej: 1123456789"
+                    pattern="\\d{10,15}"
+                    title="Solo números, 10-15 dígitos"
+                  )
+
+                // Email
+                .col-md-6
+                  label.form-label.fw-bold(for="email")
+                    i.bi.bi-envelope.me-2
+                    | Email *
+                  input#email.form-control(
+                    type="email"
+                    name="email"
+                    placeholder="usuario@hospital.com"
+                    required
+                  )
+                  small#emailFeedback.form-text.text-danger.d-none
+                    | Este email ya está registrado. No se admiten duplicados.
+
+                // Campos específicos para Médico
+                .col-12(id="medicoFields" style="display: none;")
+                  hr
+                  h6.fw-bold.text-primary
+                    i.bi.bi-stethoscope.me-2
+                    | Información Profesional del Médico
+                  .row.g-3
+                    .col-md-6
+                      label.form-label.fw-bold(for="matricula")
+                        i.bi.bi-card-text.me-2
+                        | Matrícula Profesional *
+                      input#matricula.form-control(
+                        type="text"
+                        name="matricula"
+                        placeholder="Ej: MN 123456"
+                        pattern="[A-Za-z0-9\\s]+"
+                        title="Solo letras, números y espacios"
+                        maxlength="30"
+                      )
+                    .col-md-6
+                      label.form-label.fw-bold(for="id_especialidad")
+                        i.bi.bi-hospital.me-2
+                        | Especialidad *
+                      select#id_especialidad.form-select(name="id_especialidad")
+                        option(value="" disabled selected) Seleccione especialidad...
+                        each especialidad in especialidades
+                          option(value=especialidad.IdEspecialidad)= especialidad.Nombre
+
+                // Médico asignado (solo para enfermería)
+                .col-md-6(id="medicoContainer" style="display: none;")
+                  label.form-label.fw-bold(for="id_medico")
+                    i.bi.bi-person-check.me-2
+                    | Médico Asignado
+                  select#id_medico.form-select(name="id_medico")
+                    option(value="" selected) Sin asignar
+                    each medico in medicos
+                      option(value=medico.id_usuario)= `${medico.nombre} ${medico.apellido}`
+
+                // Contraseña
+                .col-md-6
+                  label.form-label.fw-bold(for="password")
+                    i.bi.bi-key.me-2
+                    | Contraseña *
+                  input#password.form-control(
+                    type="password"
+                    name="password"
+                    placeholder="Mínimo 6 caracteres"
+                    required
+                    minlength="6"
+                  )
+                  small.form-text.text-muted
+                    | La contraseña debe tener al menos 6 caracteres
+
+                // Confirmar Contraseña
+                .col-md-6
+                  label.form-label.fw-bold(for="confirmPassword")
+                    i.bi.bi-key.me-2
+                    | Confirmar Contraseña *
+                  input#confirmPassword.form-control(
+                    type="password"
+                    name="confirmPassword"
+                    placeholder="Repita la contraseña"
+                    required
+                    minlength="6"
+                  )
+
+              // Botones
+              .d-flex.justify-content-between.mt-4
+                a.btn.btn-secondary(href="/admin/usuarios")
+                  i.bi.bi-arrow-left.me-2
+                  | Cancelar
+                button.btn.btn-primary(type="submit")
+                  i.bi.bi-person-plus.me-2
+                  | Crear Usuario
+
+  script.
+    document.addEventListener('DOMContentLoaded', function() {
+      const rolSelect = document.getElementById('rol');
+      const medicoContainer = document.getElementById('medicoContainer');
+      const medicoFields = document.getElementById('medicoFields');
+      const form = document.getElementById('crearUsuarioForm');
+
+      // Función para mostrar/ocultar campos según el rol
+      function toggleCamposByRol(selectedRol) {
+        // Campos para rol médico
+        if (selectedRol === 'medico') {
+          medicoFields.style.display = 'block';
+          document.getElementById('matricula').required = true;
+          document.getElementById('id_especialidad').required = true;
+          medicoContainer.style.display = 'none';
+          document.getElementById('id_medico').required = false;
+        } 
+        // Campos para rol enfermería
+        else if (selectedRol === 'enfermeria') {
+          medicoFields.style.display = 'none';
+          document.getElementById('matricula').required = false;
+          document.getElementById('id_especialidad').required = false;
+          medicoContainer.style.display = 'block';
+          document.getElementById('id_medico').required = true;
+        }
+        // Para otros roles
+        else {
+          medicoFields.style.display = 'none';
+          document.getElementById('matricula').required = false;
+          document.getElementById('id_especialidad').required = false;
+          medicoContainer.style.display = 'none';
+          document.getElementById('id_medico').required = false;
+        }
+      }
+
+      // Ejecutar al cargar la página si hay un valor preseleccionado
+      if (rolSelect.value) {
+        toggleCamposByRol(rolSelect.value);
+      }
+
+      // Mostrar/ocultar campos según el rol seleccionado
+      rolSelect.addEventListener('change', function() {
+        const selectedRol = this.value;
+        toggleCamposByRol(selectedRol);
+      });
+
+      // Validación de contraseñas
+      form.addEventListener('submit', function(e) {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (password !== confirmPassword) {
+          e.preventDefault();
+          alert('❌ Las contraseñas no coinciden');
+          return;
+        }
+
+        if (password.length < 6) {
+          e.preventDefault();
+          alert('❌ La contraseña debe tener al menos 6 caracteres');
+          return;
+        }
+      });
+
+      // Formatear teléfono mientras se escribe
+      const telefonoInput = document.getElementById('telefono');
+      telefonoInput.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '');
+      });
+
+      // Formatear DNI mientras se escribe
+      const dniInput = document.getElementById('dni');
+      const dniFeedback = document.getElementById('dniFeedback');
+
+      // Validar email duplicado
+      const emailInput = document.getElementById('email');
+      const emailFeedback = document.getElementById('emailFeedback');
+
+      dniInput.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '');
+        dniInput.setCustomValidity('');
+        dniFeedback.classList.add('d-none');
+      });
+
+      emailInput.addEventListener('input', function() {
+        emailInput.setCustomValidity('');
+        emailFeedback.classList.add('d-none');
+      });
+
+      async function validarDni() {
+        const dniValue = dniInput.value.trim();
+        if (!dniValue || dniValue.length < 7 || dniValue.length > 15) {
+          return;
+        }
+
+        try {
+          const response = await fetch(`/admin/usuarios/validar-dni?dni=${encodeURIComponent(dniValue)}`);
+          const data = await response.json();
+
+          if (data.existe) {
+            dniFeedback.classList.remove('d-none');
+            dniInput.setCustomValidity('Este DNI ya está registrado.');
+            dniInput.reportValidity();
+          } else {
+            dniFeedback.classList.add('d-none');
+            dniInput.setCustomValidity('');
+          }
+        } catch (error) {
+          console.error('Error validando DNI:', error);
+        }
+      }
+
+      async function validarEmail() {
+        const emailValue = emailInput.value.trim();
+        if (!emailValue || !emailInput.checkValidity()) {
+          return;
+        }
+
+        try {
+          const response = await fetch(`/admin/usuarios/validar-email?email=${encodeURIComponent(emailValue)}`);
+          const data = await response.json();
+
+          if (data.existe) {
+            emailFeedback.classList.remove('d-none');
+            emailInput.setCustomValidity('Este email ya está registrado.');
+            emailInput.reportValidity();
+          } else {
+            emailFeedback.classList.add('d-none');
+            emailInput.setCustomValidity('');
+          }
+        } catch (error) {
+          console.error('Error validando email:', error);
+        }
+      }
+
+      let dniTimer = null;
+      let emailTimer = null;
+
+      dniInput.addEventListener('input', function() {
+        clearTimeout(dniTimer);
+        dniTimer = setTimeout(validarDni, 500);
+      });
+      dniInput.addEventListener('blur', validarDni);
+
+      emailInput.addEventListener('input', function() {
+        clearTimeout(emailTimer);
+        emailTimer = setTimeout(validarEmail, 500);
+      });
+      emailInput.addEventListener('blur', validarEmail);
+
+      if (dniInput.value) {
+        validarDni();
+      }
+      if (emailInput.value) {
+        validarEmail();
+      }
+    });
