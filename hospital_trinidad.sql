@@ -49,6 +49,30 @@ INSERT INTO `admisiones` VALUES (1,1,1,'Guardia','Alta','Tos seca','2026-04-11 1
 UNLOCK TABLES;
 
 --
+-- Table structure for table `alas`
+--
+
+DROP TABLE IF EXISTS `alas`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `alas` (
+  `id_ala` int NOT NULL AUTO_INCREMENT,
+  `nombre_ala` varchar(50) NOT NULL,
+  PRIMARY KEY (`id_ala`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `alas`
+--
+
+LOCK TABLES `alas` WRITE;
+/*!40000 ALTER TABLE `alas` DISABLE KEYS */;
+INSERT INTO `alas` VALUES (1,'Coronaria'),(2,'Medicina General'),(3,'Cirugía');
+/*!40000 ALTER TABLE `alas` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `atenciones_medicas`
 --
 
@@ -116,6 +140,33 @@ INSERT INTO `atenciones_triage` VALUES (1,1,4,'120/99',33.00,66,66,'le duele','2
 UNLOCK TABLES;
 
 --
+-- Table structure for table `camas`
+--
+
+DROP TABLE IF EXISTS `camas`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `camas` (
+  `id_cama` int NOT NULL AUTO_INCREMENT,
+  `nombre_cama` enum('A','B') NOT NULL,
+  `habitacion_id` int NOT NULL,
+  `estado_cama` enum('Libre','Ocupada') DEFAULT 'Libre',
+  PRIMARY KEY (`id_cama`),
+  KEY `habitacion_id` (`habitacion_id`),
+  CONSTRAINT `camas_ibfk_1` FOREIGN KEY (`habitacion_id`) REFERENCES `habitaciones` (`id_habitacion`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `camas`
+--
+
+LOCK TABLES `camas` WRITE;
+/*!40000 ALTER TABLE `camas` DISABLE KEYS */;
+/*!40000 ALTER TABLE `camas` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `especialidades`
 --
 
@@ -138,6 +189,95 @@ LOCK TABLES `especialidades` WRITE;
 /*!40000 ALTER TABLE `especialidades` DISABLE KEYS */;
 INSERT INTO `especialidades` VALUES (1,'Clínica Médica','activa'),(2,'Pediatría','activa'),(3,'Cardiología','activa'),(4,'Traumatología','activa'),(5,'Ginecología','activa'),(6,'Obstetricia','activa'),(7,'Neurología','activa'),(8,'Dermatología','activa'),(9,'Oftalmología','activa'),(10,'Otorrinolaringología','activa'),(11,'Urología','activa'),(12,'Psiquiatría','activa'),(13,'Endocrinología','activa'),(14,'Gastroenterología','activa'),(15,'Neumonología','activa');
 /*!40000 ALTER TABLE `especialidades` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `evoluciones_internacion`
+--
+
+DROP TABLE IF EXISTS `evoluciones_internacion`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `evoluciones_internacion` (
+  `id_evolucion` int NOT NULL AUTO_INCREMENT,
+  `internacion_id` int NOT NULL,
+  `medico_id` int NOT NULL,
+  `evolucion_clinica` text NOT NULL,
+  `tratamiento_actual` text,
+  `fecha_registro` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_evolucion`),
+  KEY `internacion_id` (`internacion_id`),
+  KEY `medico_id` (`medico_id`),
+  CONSTRAINT `evoluciones_internacion_ibfk_1` FOREIGN KEY (`internacion_id`) REFERENCES `internaciones` (`id_internacion`),
+  CONSTRAINT `evoluciones_internacion_ibfk_2` FOREIGN KEY (`medico_id`) REFERENCES `medicos` (`IdMedico`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `evoluciones_internacion`
+--
+
+LOCK TABLES `evoluciones_internacion` WRITE;
+/*!40000 ALTER TABLE `evoluciones_internacion` DISABLE KEYS */;
+/*!40000 ALTER TABLE `evoluciones_internacion` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `habitaciones`
+--
+
+DROP TABLE IF EXISTS `habitaciones`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `habitaciones` (
+  `id_habitacion` int NOT NULL AUTO_INCREMENT,
+  `numero` int NOT NULL,
+  `ala_id` int NOT NULL,
+  PRIMARY KEY (`id_habitacion`),
+  KEY `ala_id` (`ala_id`),
+  CONSTRAINT `habitaciones_ibfk_1` FOREIGN KEY (`ala_id`) REFERENCES `alas` (`id_ala`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `habitaciones`
+--
+
+LOCK TABLES `habitaciones` WRITE;
+/*!40000 ALTER TABLE `habitaciones` DISABLE KEYS */;
+/*!40000 ALTER TABLE `habitaciones` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `internaciones`
+--
+
+DROP TABLE IF EXISTS `internaciones`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `internaciones` (
+  `id_internacion` int NOT NULL AUTO_INCREMENT,
+  `admision_id` int NOT NULL,
+  `cama_id` int NOT NULL,
+  `fecha_ingreso_piso` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `fecha_alta_piso` timestamp NULL DEFAULT NULL,
+  `autorizado_alta_medica` tinyint(1) DEFAULT '0',
+  `estado_registro` enum('Activo','Finalizado') DEFAULT 'Activo',
+  PRIMARY KEY (`id_internacion`),
+  KEY `admision_id` (`admision_id`),
+  KEY `cama_id` (`cama_id`),
+  CONSTRAINT `internaciones_ibfk_1` FOREIGN KEY (`admision_id`) REFERENCES `admisiones` (`id_admision`),
+  CONSTRAINT `internaciones_ibfk_2` FOREIGN KEY (`cama_id`) REFERENCES `camas` (`id_cama`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `internaciones`
+--
+
+LOCK TABLES `internaciones` WRITE;
+/*!40000 ALTER TABLE `internaciones` DISABLE KEYS */;
+/*!40000 ALTER TABLE `internaciones` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -266,7 +406,7 @@ CREATE TABLE `usuarios` (
 
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES (2,'Julian','Rios','1234','3777000000','admin@hospital.com','$2b$10$./EpyBRO6lu4LqifjY/wKei.R.MbUzIXqUf1BElILnsTbUA8DpiPi','administrador',NULL,'activo','2026-04-11 15:02:55'),(3,'Luis','Mercado','20111222','26634633333','luis@hospital.com','$2b$10$B5pbUWA9posTYlHqKTlTXeocczAufnfx07c4zsVnXC2eYShJ3MhFK','admision_guardia',NULL,'activo','2026-04-11 15:42:44'),(4,'Mariano','Torres','19222111','265435252562','mariano@hospital.com','$2b$10$pkTaGG33beIz6i1DjG0DiOM90WAmYjQn5pubroMfJbg9zi7tVA856','enfermeria',NULL,'activo','2026-04-11 16:35:41'),(5,'Sofia','Mendez','19123321','1176564433','sofia@mail.com','$2b$10$QXS5Idv6B04v9K4YjqDj4.gtJ3qt86ERwhL7b035Q/44U9Fjj6Eyu','medico',1,'activo','2026-04-11 17:05:32'),(6,'Marta','Toledo','23444333','1123455432','marta@mail.com','$2b$10$.H.ZsgQOW817G0PYtROY0uK5C0jxSX0ER0/qMh0sPJJgq797UXNfi','admision_internacion',NULL,'activo','2026-04-11 17:13:49'),(7,'Gabriel','Torrez','20111333','26545345534','gabriel@mail.com','$2b$10$q.fGyEyDHvVSjpRccNOzjuBok1ahfmWzB5Cgt7j9GqpoFppZpu1zC','medico',2,'activo','2026-04-11 17:48:28');
+INSERT INTO `usuarios` VALUES (2,'Julian','Rios','1234','3777000000','admin@hospital.com','$2b$10$./EpyBRO6lu4LqifjY/wKei.R.MbUzIXqUf1BElILnsTbUA8DpiPi','administrador',NULL,'activo','2026-04-11 15:02:55'),(3,'Luis','Mercado','20111222','26634633333','luis@hospital.com','$2b$10$B5pbUWA9posTYlHqKTlTXeocczAufnfx07c4zsVnXC2eYShJ3MhFK','admision_guardia',NULL,'activo','2026-04-11 15:42:44'),(4,'Mariano','Torres','19222111','265435252562','mariano@hospital.com','$2b$10$wSa9NgDlr7dFF23KxdDLOu4JDRGrQknF8JVVxo0I/HiQqv9CCTxHu','enfermeria',NULL,'activo','2026-04-11 16:35:41'),(5,'Sofia','Mendez','19123321','1176564433','sofia@mail.com','$2b$10$QXS5Idv6B04v9K4YjqDj4.gtJ3qt86ERwhL7b035Q/44U9Fjj6Eyu','medico',1,'activo','2026-04-11 17:05:32'),(6,'Marta','Toledo','23444333','1123455432','marta@mail.com','$2b$10$.H.ZsgQOW817G0PYtROY0uK5C0jxSX0ER0/qMh0sPJJgq797UXNfi','admision_internacion',NULL,'activo','2026-04-11 17:13:49'),(7,'Gabriel','Torrez','20111333','26545345534','gabriel@mail.com','$2b$10$q.fGyEyDHvVSjpRccNOzjuBok1ahfmWzB5Cgt7j9GqpoFppZpu1zC','medico',2,'activo','2026-04-11 17:48:28');
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -279,4 +419,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-04-12 18:57:07
+-- Dump completed on 2026-04-12 19:57:36
