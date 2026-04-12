@@ -437,11 +437,17 @@ const hospitalController = {
     renderAtencionMedica: async (req, res) => {
         try {
             const [pacientesMed] = await db.query(`
-                SELECT a.id_admision, p.nombre, p.apellido, t.prioridad, t.presion_arterial as presion, t.temperatura, t.frecuencia_cardiaca, t.saturacion_oxigeno,
-                       TIMESTAMPDIFF(MINUTE, a.fecha_ingreso, NOW()) as tiempo_espera_minutos
+                SELECT DISTINCT a.id_admision, p.nombre, p.apellido, t.prioridad, t.presion_arterial as presion, t.temperatura, t.frecuencia_cardiaca, t.saturacion_oxigeno,
+                       TIMESTAMPDIFF(MINUTE, a.fecha_ingreso, NOW()) as tiempo_espera_minutos, a.fecha_ingreso
                 FROM admisiones a JOIN pacientes p ON a.paciente_id = p.id_paciente
                 JOIN atenciones_triage t ON a.id_admision = t.admision_id
-                WHERE a.estado_admision = 'Espera Médico' ORDER BY t.prioridad ASC, a.fecha_ingreso ASC`);
+                WHERE a.estado_admision = 'Espera Médico' 
+                AND t.fecha_registro = (
+                    SELECT MAX(t2.fecha_registro) 
+                    FROM atenciones_triage t2 
+                    WHERE t2.admision_id = a.id_admision
+                )
+                ORDER BY t.prioridad ASC, a.fecha_ingreso ASC`);
             res.render('medico/medico', { pacientesMed, consultaActiva: null });
         } catch (error) {
             res.render('utiles/error', { mensaje: error.message });
@@ -471,7 +477,9 @@ const hospitalController = {
                 SELECT prioridad, presion_arterial, temperatura, frecuencia_cardiaca,
                        saturacion_oxigeno, observaciones_enfermeria
                 FROM atenciones_triage
-                WHERE admision_id = ?`, [id]);
+                WHERE admision_id = ?
+                ORDER BY fecha_registro DESC
+                LIMIT 1`, [id]);
 
             if (!triageData.length) {
                 return res.render('utiles/error', { mensaje: 'Datos de triage no encontrados.' });
@@ -485,6 +493,54 @@ const hospitalController = {
         } catch (error) {
             console.error('Error al cargar diagnóstico:', error);
             res.render('utiles/error', { mensaje: 'Error al cargar los datos del paciente.' });
+        }
+    },
+
+    // Renderizar lista de pacientes con paginación
+    renderListaPacientes: async (req, res) => {
+        try {
+            const page = parseInt(req.query.page) || 1;
+            const limit = 10;
+            const offset = (page - 1) * limit;
+            const search = req.query.search ? req.query.search.trim() : '';
+
+            let whereClause = '';
+            let params = [];
+            if (search) {
+                whereClause = 'WHERE p.dni LIKE ?';
+                params.push(`%${search}%`);
+            }
+
+            // Obtener total de pacientes (filtrados si hay búsqueda)
+            const [totalResult] = await db.query(`SELECT COUNT(*) as total FROM pacientes p ${whereClause}`, params);
+            const totalPacientes = totalResult[0].total;
+            const totalPages = Math.ceil(totalPacientes / limit);
+
+            // Obtener pacientes con paginación y filtro
+            const [pacientes] = await db.query(`
+                SELECT p.id_paciente, p.nombre, p.apellido, p.dni, p.fecha_nacimiento, p.genero,
+                       o.nombre_obra_social as obra_social,
+                       TIMESTAMPDIFF(YEAR, p.fecha_nacimiento, CURDATE()) as edad
+                FROM pacientes p
+                LEFT JOIN obras_sociales o ON p.obrasocial = o.id_obra_social
+                ${whereClause}
+                ORDER BY p.apellido, p.nombre
+                LIMIT ? OFFSET ?`, [...params, limit, offset]);
+
+            res.render('pacientes/listapacientes', {
+                pacientes,
+                currentPage: page,
+                totalPages,
+                totalPacientes,
+                hasNext: page < totalPages,
+                hasPrev: page > 1,
+                nextPage: page + 1,
+                prevPage: page - 1,
+                search
+            });
+        } catch (error) {
+            console.error('Error al cargar lista de pacientes:', error);
+            res.render('utiles/error', { mensaje: 'Error al cargar la lista de pacientes.' });
         }
     },
 
@@ -890,6 +946,56 @@ const hospitalController = {
         } catch (error) {
             console.error('Error al cambiar estado de usuario:', error);
             res.redirect('/admin/usuarios');
+        }
+    },
+
+    // Renderizar formulario de edición de paciente
+    renderEditarPaciente: async (req, res) => {
+        const { id } = req.params;
+
+        try {
+            // Obtener paciente
+            const [pacientes] = await db.query(`
+                SELECT p.id_paciente, p.nombre, p.apellido, p.dni, p.fecha_nacimiento, p.genero,
+                       p.telefono, p.direccion, p.obrasocial,
+                       o.nombre_obra_social as obra_social,
+                       TIMESTAMPDIFF(YEAR, p.fecha_nacimiento, CURDATE()) as edad
+                FROM pacientes p
+                LEFT JOIN obras_sociales o ON p.obrasocial = o.id_obra_social
+                WHERE p.id_paciente = ?`, [id]);
+
+            if (!pacientes.length) {
+                return res.render('utiles/error', { mensaje: 'Paciente no encontrado.' });
+            }
+
+            // Obtener todas las obras sociales para el select
+            const [obrasSociales] = await db.query('SELECT id_obra_social, nombre_obra_social FROM obras_sociales ORDER BY nombre_obra_social');
+
+            res.render('pacientes/editarpaciente', {
+                paciente: pacientes[0],
+                obrasSociales
+            });
+        } catch (error) {
+            console.error('Error al cargar paciente para edición:', error);
+            res.render('utiles/error', { mensaje: 'Error al cargar el paciente.' });
+        }
+    },
+
+    // Actualizar paciente (solo campos editables)
+    actualizarPaciente: async (req, res) => {
+        const { id } = req.params;
+        const { obrasocial, direccion, telefono } = req.body;
+
+        try {
+            await db.query(
+                'UPDATE pacientes SET obrasocial = ?, direccion = ?, telefono = ? WHERE id_paciente = ?',
+                [obrasocial, direccion, telefono, id]
+            );
+
+            res.redirect('/lista-pacientes');
+        } catch (error) {
+            console.error('Error al actualizar paciente:', error);
+            res.render('utiles/error', { mensaje: 'Error al actualizar el paciente.' });
         }
     }
 };

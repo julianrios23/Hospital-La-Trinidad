@@ -45,6 +45,11 @@ router.get('/atencion-medica', ensureAuthenticated, hospitalController.renderAte
 router.get('/atender/:id', ensureAuthenticated, hospitalController.renderDiagnostico);
 router.post('/guardar-diagnostico', ensureAuthenticated, hospitalController.guardarDiagnostico);
 
+// --- RUTAS DE PACIENTES ---
+router.get('/lista-pacientes', ensureAuthenticated, hospitalController.renderListaPacientes);
+router.get('/pacientes/:id/editar', ensureAuthenticated, hospitalController.renderEditarPaciente);
+router.post('/pacientes/:id/actualizar', ensureAuthenticated, hospitalController.actualizarPaciente);
+
 // --- RUTAS DE ADMINISTRACIÓN ---
 router.get('/admin/usuarios', ensureAdmin, hospitalController.renderAdminUsuarios);
 router.get('/admin/usuarios/nuevo', ensureAdmin, hospitalController.renderNuevoUsuario);

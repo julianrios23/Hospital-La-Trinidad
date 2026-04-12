@@ -35,7 +35,7 @@ CREATE TABLE `admisiones` (
   KEY `fk_admision_os` (`obra_social_id`),
   CONSTRAINT `fk_admision_os` FOREIGN KEY (`obra_social_id`) REFERENCES `obras_sociales` (`id_obra_social`),
   CONSTRAINT `fk_admision_paciente` FOREIGN KEY (`paciente_id`) REFERENCES `pacientes` (`id_paciente`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -44,7 +44,7 @@ CREATE TABLE `admisiones` (
 
 LOCK TABLES `admisiones` WRITE;
 /*!40000 ALTER TABLE `admisiones` DISABLE KEYS */;
-INSERT INTO `admisiones` VALUES (1,1,8,'Guardia','Alta','dolor\r\n','2026-04-10 22:11:46'),(2,2,18,'Guardia','Internado','Dolor agudo de espalda','2026-04-10 22:31:11'),(3,1,8,'Guardia','Internado','le duele','2026-04-10 22:47:39'),(4,2,18,'Guardia','Internado','hay hay dice','2026-04-11 13:51:50'),(5,2,18,'Guardia','Internado','asa','2026-04-11 15:13:20'),(6,1,8,'Guardia','Espera Médico','ss','2026-04-11 15:50:49'),(7,3,8,'Guardia','Espera Médico','ssss','2026-04-11 15:51:23');
+INSERT INTO `admisiones` VALUES (1,1,1,'Guardia','Alta','Tos seca','2026-04-11 17:49:58'),(2,23,5,'Guardia','Alta','dolor\r\n','2026-04-12 21:14:57'),(3,26,12,'Guardia','Internado','mal','2026-04-12 21:15:14'),(4,26,12,'Guardia','Alta','de','2026-04-12 21:54:38');
 /*!40000 ALTER TABLE `admisiones` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -69,7 +69,7 @@ CREATE TABLE `atenciones_medicas` (
   PRIMARY KEY (`id_atencion_medica`),
   KEY `fk_medico_admision` (`admision_id`),
   CONSTRAINT `fk_medico_admision` FOREIGN KEY (`admision_id`) REFERENCES `admisiones` (`id_admision`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -78,7 +78,7 @@ CREATE TABLE `atenciones_medicas` (
 
 LOCK TABLES `atenciones_medicas` WRITE;
 /*!40000 ALTER TABLE `atenciones_medicas` DISABLE KEYS */;
-INSERT INTO `atenciones_medicas` VALUES (1,2,'aaaa','sss','cc',1,'internacion','2026-04-11 13:38:40',907,'2026-04-11 13:38:40'),(2,1,'sss','ddd','z',0,'completada','2026-04-11 13:41:54',930,'2026-04-11 13:41:54'),(3,3,'ccc','dd','ee',1,'internacion','2026-04-11 13:49:32',901,'2026-04-11 13:49:32'),(4,4,'ss','ww','dd',1,'internacion','2026-04-11 13:53:00',1,'2026-04-11 13:53:00'),(5,5,'dd','eq','xx',1,'internacion','2026-04-11 15:18:31',5,'2026-04-11 15:18:31');
+INSERT INTO `atenciones_medicas` VALUES (1,2,'aaaa','sss','cc',1,'internacion','2026-04-11 13:38:40',907,'2026-04-11 13:38:40'),(2,1,'sss','ddd','z',0,'completada','2026-04-11 13:41:54',930,'2026-04-11 13:41:54'),(3,3,'ccc','dd','ee',1,'internacion','2026-04-11 13:49:32',901,'2026-04-11 13:49:32'),(4,4,'ss','ww','dd',1,'internacion','2026-04-11 13:53:00',1,'2026-04-11 13:53:00'),(5,5,'dd','eq','xx',1,'internacion','2026-04-11 15:18:31',5,'2026-04-11 15:18:31'),(6,6,'ddd','ssss','ss',1,'internacion','2026-04-11 17:10:26',79,'2026-04-11 17:10:26'),(7,7,'dd','rr','eee',0,'completada','2026-04-11 17:12:26',81,'2026-04-11 17:12:26'),(8,1,'bla bla blaaaa','bayaspirina','cada 2 hs',0,'completada','2026-04-11 17:52:26',2,'2026-04-11 17:52:26'),(9,2,'dfggggg','fdfgggg','ujhn',0,'completada','2026-04-12 21:25:43',10,'2026-04-12 21:25:43'),(10,3,'vfv','hh','eeeeeeeeeeee',1,'internacion','2026-04-12 21:26:08',10,'2026-04-12 21:26:08'),(11,4,'tgdddddddddddddd','ffffffffffffff','ttttttttttttt',0,'completada','2026-04-12 21:55:48',1,'2026-04-12 21:55:48');
 /*!40000 ALTER TABLE `atenciones_medicas` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -102,7 +102,7 @@ CREATE TABLE `atenciones_triage` (
   PRIMARY KEY (`id_triage`),
   KEY `fk_triage_admision` (`admision_id`),
   CONSTRAINT `fk_triage_admision` FOREIGN KEY (`admision_id`) REFERENCES `admisiones` (`id_admision`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -111,7 +111,7 @@ CREATE TABLE `atenciones_triage` (
 
 LOCK TABLES `atenciones_triage` WRITE;
 /*!40000 ALTER TABLE `atenciones_triage` DISABLE KEYS */;
-INSERT INTO `atenciones_triage` VALUES (1,1,4,'120/99',33.00,66,66,'le duele','2026-04-10 22:34:44'),(2,2,2,'116/98',35.00,66,88,'grita le guele','2026-04-10 22:35:54'),(3,3,4,'120/80',35.00,88,99,'dolor punzante','2026-04-10 22:48:22'),(4,4,5,'122/34',22.00,33,33,'ss','2026-04-11 13:52:42'),(5,5,2,'160/11',35.00,55,44,'cdaa','2026-04-11 15:18:02'),(6,6,3,'160/11',36.00,77,55,'hay','2026-04-11 16:39:36'),(7,7,2,'120/99',36.00,66,77,'fff','2026-04-11 16:43:06');
+INSERT INTO `atenciones_triage` VALUES (1,1,4,'120/99',33.00,66,66,'le duele','2026-04-10 22:34:44'),(2,2,2,'116/98',35.00,66,88,'grita le guele','2026-04-10 22:35:54'),(3,3,4,'120/80',35.00,88,99,'dolor punzante','2026-04-10 22:48:22'),(4,4,5,'122/34',22.00,33,33,'ss','2026-04-11 13:52:42'),(5,5,2,'160/11',35.00,55,44,'cdaa','2026-04-11 15:18:02'),(6,6,3,'160/11',36.00,77,55,'hay','2026-04-11 16:39:36'),(7,7,2,'120/99',36.00,66,77,'fff','2026-04-11 16:43:06'),(8,1,3,'160/11',37.00,78,66,'tos fuerte dolor abdominal y lumbar','2026-04-11 17:51:14'),(9,2,2,'116/98',37.00,88,78,'ds','2026-04-12 21:16:16'),(10,3,4,'120/99',35.00,79,77,'nhn','2026-04-12 21:16:35'),(11,4,2,'120/99',35.00,66,77,'bhgg','2026-04-12 21:55:09');
 /*!40000 ALTER TABLE `atenciones_triage` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -160,7 +160,7 @@ CREATE TABLE `medicos` (
   UNIQUE KEY `Matricula` (`Matricula`),
   KEY `fk_medico_especialidad` (`IdEspecialidad`),
   CONSTRAINT `fk_medico_especialidad` FOREIGN KEY (`IdEspecialidad`) REFERENCES `especialidades` (`IdEspecialidad`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -169,6 +169,7 @@ CREATE TABLE `medicos` (
 
 LOCK TABLES `medicos` WRITE;
 /*!40000 ALTER TABLE `medicos` DISABLE KEYS */;
+INSERT INTO `medicos` VALUES (1,'Sofia','Mendez','54664',NULL,NULL,2,'activo'),(2,'Gabriel','Torrez','3456',NULL,NULL,1,'activo');
 /*!40000 ALTER TABLE `medicos` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -219,7 +220,7 @@ CREATE TABLE `pacientes` (
   KEY `idx_dni_paciente` (`dni`),
   KEY `fk_paciente_obra_social` (`obrasocial`),
   CONSTRAINT `fk_paciente_obra_social` FOREIGN KEY (`obrasocial`) REFERENCES `obras_sociales` (`id_obra_social`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -228,7 +229,7 @@ CREATE TABLE `pacientes` (
 
 LOCK TABLES `pacientes` WRITE;
 /*!40000 ALTER TABLE `pacientes` DISABLE KEYS */;
-INSERT INTO `pacientes` VALUES (1,'11','Juan','Garcia','2025-06-13','Masculino','333','rree',8,'2026-04-10 21:53:19'),(2,'12','Maria','Gomez','2000-08-19','Femenino','345678','Los Alerces 987',18,'2026-04-10 22:31:11'),(3,'14','cc','sss','2026-04-02','Masculino','33333','ddddd',8,'2026-04-11 15:51:23');
+INSERT INTO `pacientes` VALUES (1,'12','Felipe','Garcia','2014-06-23','Masculino','47777777','San Luis 343',1,'2026-04-11 17:49:58'),(22,'10','Juan','Perez','1985-01-10','Masculino','3777000001','Calle 101',1,'2026-04-12 21:13:35'),(23,'11','Maria','Gomez','1990-02-11','Femenino','3777000002','Calle 102',5,'2026-04-12 21:13:35'),(24,'13','Ana','Martinez','2000-04-13','Femenino','3777000004','Calle 104',8,'2026-04-12 21:13:35'),(25,'14','Luis','Rodriguez','1995-05-14','Masculino','3777000005','Calle 105',1,'2026-04-12 21:13:35'),(26,'15','Laura','Fernandez','1988-06-15','Femenino','3777000006','Calle 106',12,'2026-04-12 21:13:35'),(27,'16','Pedro','Sanchez','1975-07-16','Masculino','3777000007','Calle 107',6,'2026-04-12 21:13:35'),(28,'17','Sofia','Ramirez','1999-08-17','Femenino','3777000008','Calle 108',1,'2026-04-12 21:13:35'),(29,'18','Diego','Torres','1983-09-18','Masculino','3777000009','Calle 109',9,'2026-04-12 21:13:35'),(30,'19','Valeria','Flores','1992-10-19','Femenino','3777000010','Calle 110',4,'2026-04-12 21:13:35'),(31,'20','Martin','Acosta','1981-11-20','Masculino','3777000011','Calle 111',1,'2026-04-12 21:13:35'),(32,'21','Lucia','Benitez','2001-12-21','Femenino','3777000012','Calle 112',7,'2026-04-12 21:13:35'),(33,'22','Jorge','Herrera','1979-01-22','Masculino','3777000013','Calle 113',2,'2026-04-12 21:13:35'),(34,'23','Paula','Medina','1993-02-23','Femenino','3777000014','Sarmiento 888',10,'2026-04-12 21:13:35'),(35,'24','Ricardo','Aguirre','1987-03-24','Masculino','3777000015','Calle 115',1,'2026-04-12 21:13:35'),(36,'25','Natalia','Rojas','1996-04-25','Femenino','3777000016','Calle 116',15,'2026-04-12 21:13:35'),(37,'26','Fernando','Silva','1984-05-26','Masculino','3777000017','Calle 117',11,'2026-04-12 21:13:35'),(38,'27','Gabriela','Castro','1998-06-27','Femenino','3777000018','Calle 118',1,'2026-04-12 21:13:35'),(39,'28','Hector','Vega','1976-07-28','Masculino','3777000019','Calle 119',13,'2026-04-12 21:13:35'),(40,'29','Daniela','Morales','2002-08-29','Femenino','3777000020','Calle 120',14,'2026-04-12 21:13:35');
 /*!40000 ALTER TABLE `pacientes` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -256,7 +257,7 @@ CREATE TABLE `usuarios` (
   UNIQUE KEY `email` (`email`),
   KEY `fk_usuario_medico` (`id_medico`),
   CONSTRAINT `fk_usuario_medico` FOREIGN KEY (`id_medico`) REFERENCES `medicos` (`IdMedico`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -265,7 +266,7 @@ CREATE TABLE `usuarios` (
 
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES (2,'Julian','Rios','1234','3777000000','admin@hospital.com','$2b$10$./EpyBRO6lu4LqifjY/wKei.R.MbUzIXqUf1BElILnsTbUA8DpiPi','administrador',NULL,'activo','2026-04-11 15:02:55'),(3,'Luis','Mercado','20111222','26634633333','luis@hospital.com','$2b$10$B5pbUWA9posTYlHqKTlTXeocczAufnfx07c4zsVnXC2eYShJ3MhFK','admision_guardia',NULL,'activo','2026-04-11 15:42:44'),(4,'Mariano','Torres','19222111','265435252562','mariano@hospital.com','$2b$10$pkTaGG33beIz6i1DjG0DiOM90WAmYjQn5pubroMfJbg9zi7tVA856','enfermeria',NULL,'activo','2026-04-11 16:35:41');
+INSERT INTO `usuarios` VALUES (2,'Julian','Rios','1234','3777000000','admin@hospital.com','$2b$10$./EpyBRO6lu4LqifjY/wKei.R.MbUzIXqUf1BElILnsTbUA8DpiPi','administrador',NULL,'activo','2026-04-11 15:02:55'),(3,'Luis','Mercado','20111222','26634633333','luis@hospital.com','$2b$10$B5pbUWA9posTYlHqKTlTXeocczAufnfx07c4zsVnXC2eYShJ3MhFK','admision_guardia',NULL,'activo','2026-04-11 15:42:44'),(4,'Mariano','Torres','19222111','265435252562','mariano@hospital.com','$2b$10$pkTaGG33beIz6i1DjG0DiOM90WAmYjQn5pubroMfJbg9zi7tVA856','enfermeria',NULL,'activo','2026-04-11 16:35:41'),(5,'Sofia','Mendez','19123321','1176564433','sofia@mail.com','$2b$10$QXS5Idv6B04v9K4YjqDj4.gtJ3qt86ERwhL7b035Q/44U9Fjj6Eyu','medico',1,'activo','2026-04-11 17:05:32'),(6,'Marta','Toledo','23444333','1123455432','marta@mail.com','$2b$10$.H.ZsgQOW817G0PYtROY0uK5C0jxSX0ER0/qMh0sPJJgq797UXNfi','admision_internacion',NULL,'activo','2026-04-11 17:13:49'),(7,'Gabriel','Torrez','20111333','26545345534','gabriel@mail.com','$2b$10$q.fGyEyDHvVSjpRccNOzjuBok1ahfmWzB5Cgt7j9GqpoFppZpu1zC','medico',2,'activo','2026-04-11 17:48:28');
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -278,4 +279,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-04-11 13:51:33
+-- Dump completed on 2026-04-12 18:57:07
