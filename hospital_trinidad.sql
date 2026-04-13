@@ -35,7 +35,7 @@ CREATE TABLE `admisiones` (
   KEY `fk_admision_os` (`obra_social_id`),
   CONSTRAINT `fk_admision_os` FOREIGN KEY (`obra_social_id`) REFERENCES `obras_sociales` (`id_obra_social`),
   CONSTRAINT `fk_admision_paciente` FOREIGN KEY (`paciente_id`) REFERENCES `pacientes` (`id_paciente`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -44,7 +44,7 @@ CREATE TABLE `admisiones` (
 
 LOCK TABLES `admisiones` WRITE;
 /*!40000 ALTER TABLE `admisiones` DISABLE KEYS */;
-INSERT INTO `admisiones` VALUES (1,1,1,'Guardia','Alta','Tos seca','2026-04-11 17:49:58'),(2,23,5,'Guardia','Alta','dolor\r\n','2026-04-12 21:14:57'),(3,26,12,'Guardia','Internado','mal','2026-04-12 21:15:14'),(4,26,12,'Guardia','Alta','de','2026-04-12 21:54:38');
+INSERT INTO `admisiones` VALUES (1,1,1,'Guardia','Alta','Tos seca','2026-04-11 17:49:58'),(2,23,5,'Guardia','Alta','dolor\r\n','2026-04-12 21:14:57'),(3,26,12,'Guardia','Internado','mal','2026-04-12 21:15:14'),(4,26,12,'Guardia','Alta','de','2026-04-12 21:54:38'),(5,23,5,'Guardia','Internado','me dueleeee','2026-04-13 00:02:02'),(6,29,9,'Guardia','Internado','Dolor intenso pecho y brazo izquierdo','2026-04-13 00:16:21'),(7,31,1,'Guardia','Internado','Herida cortante','2026-04-13 03:17:52');
 /*!40000 ALTER TABLE `admisiones` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -93,7 +93,7 @@ CREATE TABLE `atenciones_medicas` (
   PRIMARY KEY (`id_atencion_medica`),
   KEY `fk_medico_admision` (`admision_id`),
   CONSTRAINT `fk_medico_admision` FOREIGN KEY (`admision_id`) REFERENCES `admisiones` (`id_admision`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -102,7 +102,7 @@ CREATE TABLE `atenciones_medicas` (
 
 LOCK TABLES `atenciones_medicas` WRITE;
 /*!40000 ALTER TABLE `atenciones_medicas` DISABLE KEYS */;
-INSERT INTO `atenciones_medicas` VALUES (1,2,'aaaa','sss','cc',1,'internacion','2026-04-11 13:38:40',907,'2026-04-11 13:38:40'),(2,1,'sss','ddd','z',0,'completada','2026-04-11 13:41:54',930,'2026-04-11 13:41:54'),(3,3,'ccc','dd','ee',1,'internacion','2026-04-11 13:49:32',901,'2026-04-11 13:49:32'),(4,4,'ss','ww','dd',1,'internacion','2026-04-11 13:53:00',1,'2026-04-11 13:53:00'),(5,5,'dd','eq','xx',1,'internacion','2026-04-11 15:18:31',5,'2026-04-11 15:18:31'),(6,6,'ddd','ssss','ss',1,'internacion','2026-04-11 17:10:26',79,'2026-04-11 17:10:26'),(7,7,'dd','rr','eee',0,'completada','2026-04-11 17:12:26',81,'2026-04-11 17:12:26'),(8,1,'bla bla blaaaa','bayaspirina','cada 2 hs',0,'completada','2026-04-11 17:52:26',2,'2026-04-11 17:52:26'),(9,2,'dfggggg','fdfgggg','ujhn',0,'completada','2026-04-12 21:25:43',10,'2026-04-12 21:25:43'),(10,3,'vfv','hh','eeeeeeeeeeee',1,'internacion','2026-04-12 21:26:08',10,'2026-04-12 21:26:08'),(11,4,'tgdddddddddddddd','ffffffffffffff','ttttttttttttt',0,'completada','2026-04-12 21:55:48',1,'2026-04-12 21:55:48');
+INSERT INTO `atenciones_medicas` VALUES (1,7,'Herida pierna derecha sangrado masivo.','compresion, bayaspirina ','derivo a cirugia',1,'internacion','2026-04-13 03:21:36',3,'2026-04-13 03:21:36');
 /*!40000 ALTER TABLE `atenciones_medicas` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -126,7 +126,7 @@ CREATE TABLE `atenciones_triage` (
   PRIMARY KEY (`id_triage`),
   KEY `fk_triage_admision` (`admision_id`),
   CONSTRAINT `fk_triage_admision` FOREIGN KEY (`admision_id`) REFERENCES `admisiones` (`id_admision`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -135,7 +135,7 @@ CREATE TABLE `atenciones_triage` (
 
 LOCK TABLES `atenciones_triage` WRITE;
 /*!40000 ALTER TABLE `atenciones_triage` DISABLE KEYS */;
-INSERT INTO `atenciones_triage` VALUES (1,1,4,'120/99',33.00,66,66,'le duele','2026-04-10 22:34:44'),(2,2,2,'116/98',35.00,66,88,'grita le guele','2026-04-10 22:35:54'),(3,3,4,'120/80',35.00,88,99,'dolor punzante','2026-04-10 22:48:22'),(4,4,5,'122/34',22.00,33,33,'ss','2026-04-11 13:52:42'),(5,5,2,'160/11',35.00,55,44,'cdaa','2026-04-11 15:18:02'),(6,6,3,'160/11',36.00,77,55,'hay','2026-04-11 16:39:36'),(7,7,2,'120/99',36.00,66,77,'fff','2026-04-11 16:43:06'),(8,1,3,'160/11',37.00,78,66,'tos fuerte dolor abdominal y lumbar','2026-04-11 17:51:14'),(9,2,2,'116/98',37.00,88,78,'ds','2026-04-12 21:16:16'),(10,3,4,'120/99',35.00,79,77,'nhn','2026-04-12 21:16:35'),(11,4,2,'120/99',35.00,66,77,'bhgg','2026-04-12 21:55:09');
+INSERT INTO `atenciones_triage` VALUES (1,7,2,'115/12',36.00,119,77,'herida pierna derecha, con hemorragia','2026-04-13 03:19:35');
 /*!40000 ALTER TABLE `atenciones_triage` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -154,7 +154,7 @@ CREATE TABLE `camas` (
   PRIMARY KEY (`id_cama`),
   KEY `habitacion_id` (`habitacion_id`),
   CONSTRAINT `camas_ibfk_1` FOREIGN KEY (`habitacion_id`) REFERENCES `habitaciones` (`id_habitacion`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -163,6 +163,7 @@ CREATE TABLE `camas` (
 
 LOCK TABLES `camas` WRITE;
 /*!40000 ALTER TABLE `camas` DISABLE KEYS */;
+INSERT INTO `camas` VALUES (1,'A',1,'Libre'),(2,'A',2,'Libre'),(3,'A',3,'Libre'),(4,'A',4,'Libre'),(5,'A',5,'Libre'),(6,'A',6,'Libre'),(7,'A',7,'Libre'),(8,'A',8,'Libre'),(9,'A',9,'Libre'),(10,'A',10,'Libre'),(11,'A',11,'Libre'),(12,'A',12,'Libre'),(13,'A',13,'Libre'),(14,'A',14,'Libre'),(15,'A',15,'Libre'),(16,'B',1,'Libre'),(17,'B',2,'Libre'),(18,'B',3,'Libre'),(19,'B',4,'Libre'),(20,'B',5,'Libre'),(21,'B',6,'Libre'),(22,'B',7,'Libre'),(23,'B',8,'Libre'),(24,'B',9,'Libre'),(25,'B',10,'Libre'),(26,'B',11,'Libre'),(27,'B',12,'Libre'),(28,'B',13,'Libre'),(29,'B',14,'Libre'),(30,'B',15,'Ocupada');
 /*!40000 ALTER TABLE `camas` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -210,7 +211,7 @@ CREATE TABLE `evoluciones_internacion` (
   KEY `medico_id` (`medico_id`),
   CONSTRAINT `evoluciones_internacion_ibfk_1` FOREIGN KEY (`internacion_id`) REFERENCES `internaciones` (`id_internacion`),
   CONSTRAINT `evoluciones_internacion_ibfk_2` FOREIGN KEY (`medico_id`) REFERENCES `medicos` (`IdMedico`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -219,6 +220,7 @@ CREATE TABLE `evoluciones_internacion` (
 
 LOCK TABLES `evoluciones_internacion` WRITE;
 /*!40000 ALTER TABLE `evoluciones_internacion` DISABLE KEYS */;
+INSERT INTO `evoluciones_internacion` VALUES (2,2,1,'ffff','rrrr','2026-04-13 03:50:45'),(3,2,2,'ooooaaa','ddddd','2026-04-13 03:52:50');
 /*!40000 ALTER TABLE `evoluciones_internacion` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -236,7 +238,7 @@ CREATE TABLE `habitaciones` (
   PRIMARY KEY (`id_habitacion`),
   KEY `ala_id` (`ala_id`),
   CONSTRAINT `habitaciones_ibfk_1` FOREIGN KEY (`ala_id`) REFERENCES `alas` (`id_ala`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -245,6 +247,7 @@ CREATE TABLE `habitaciones` (
 
 LOCK TABLES `habitaciones` WRITE;
 /*!40000 ALTER TABLE `habitaciones` DISABLE KEYS */;
+INSERT INTO `habitaciones` VALUES (1,101,1),(2,102,1),(3,103,1),(4,104,1),(5,105,1),(6,201,2),(7,202,2),(8,203,2),(9,204,2),(10,205,2),(11,301,3),(12,302,3),(13,303,3),(14,304,3),(15,305,3);
 /*!40000 ALTER TABLE `habitaciones` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -259,6 +262,7 @@ CREATE TABLE `internaciones` (
   `id_internacion` int NOT NULL AUTO_INCREMENT,
   `admision_id` int NOT NULL,
   `cama_id` int NOT NULL,
+  `medico_id` int DEFAULT NULL,
   `fecha_ingreso_piso` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `fecha_alta_piso` timestamp NULL DEFAULT NULL,
   `autorizado_alta_medica` tinyint(1) DEFAULT '0',
@@ -266,9 +270,11 @@ CREATE TABLE `internaciones` (
   PRIMARY KEY (`id_internacion`),
   KEY `admision_id` (`admision_id`),
   KEY `cama_id` (`cama_id`),
+  KEY `fk_internacion_medico` (`medico_id`),
+  CONSTRAINT `fk_internacion_medico` FOREIGN KEY (`medico_id`) REFERENCES `medicos` (`IdMedico`),
   CONSTRAINT `internaciones_ibfk_1` FOREIGN KEY (`admision_id`) REFERENCES `admisiones` (`id_admision`),
   CONSTRAINT `internaciones_ibfk_2` FOREIGN KEY (`cama_id`) REFERENCES `camas` (`id_cama`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -277,6 +283,7 @@ CREATE TABLE `internaciones` (
 
 LOCK TABLES `internaciones` WRITE;
 /*!40000 ALTER TABLE `internaciones` DISABLE KEYS */;
+INSERT INTO `internaciones` VALUES (1,6,18,NULL,'2026-04-13 03:04:06',NULL,0,'Activo'),(2,7,30,NULL,'2026-04-13 03:22:04',NULL,1,'Activo');
 /*!40000 ALTER TABLE `internaciones` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -406,7 +413,7 @@ CREATE TABLE `usuarios` (
 
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES (2,'Julian','Rios','1234','3777000000','admin@hospital.com','$2b$10$./EpyBRO6lu4LqifjY/wKei.R.MbUzIXqUf1BElILnsTbUA8DpiPi','administrador',NULL,'activo','2026-04-11 15:02:55'),(3,'Luis','Mercado','20111222','26634633333','luis@hospital.com','$2b$10$B5pbUWA9posTYlHqKTlTXeocczAufnfx07c4zsVnXC2eYShJ3MhFK','admision_guardia',NULL,'activo','2026-04-11 15:42:44'),(4,'Mariano','Torres','19222111','265435252562','mariano@hospital.com','$2b$10$wSa9NgDlr7dFF23KxdDLOu4JDRGrQknF8JVVxo0I/HiQqv9CCTxHu','enfermeria',NULL,'activo','2026-04-11 16:35:41'),(5,'Sofia','Mendez','19123321','1176564433','sofia@mail.com','$2b$10$QXS5Idv6B04v9K4YjqDj4.gtJ3qt86ERwhL7b035Q/44U9Fjj6Eyu','medico',1,'activo','2026-04-11 17:05:32'),(6,'Marta','Toledo','23444333','1123455432','marta@mail.com','$2b$10$.H.ZsgQOW817G0PYtROY0uK5C0jxSX0ER0/qMh0sPJJgq797UXNfi','admision_internacion',NULL,'activo','2026-04-11 17:13:49'),(7,'Gabriel','Torrez','20111333','26545345534','gabriel@mail.com','$2b$10$q.fGyEyDHvVSjpRccNOzjuBok1ahfmWzB5Cgt7j9GqpoFppZpu1zC','medico',2,'activo','2026-04-11 17:48:28');
+INSERT INTO `usuarios` VALUES (2,'Julian','Rios','1234','3777000000','admin@hospital.com','$2b$10$./EpyBRO6lu4LqifjY/wKei.R.MbUzIXqUf1BElILnsTbUA8DpiPi','administrador',NULL,'activo','2026-04-11 15:02:55'),(3,'Luis','Mercado','20111222','26634633333','luisguardia@hospital.com','$2b$10$2UqfbVEXqk2FUuYzXz3w7ueODlGGs5Kh4Jy8A3hzaxeT5arJVpLiW','admision_guardia',NULL,'activo','2026-04-11 15:42:44'),(4,'Mariano','Torres','19222111','265435252562','marianoenferm@hospital.com','$2b$10$RkJT.jI11Lb/Xc.5DbBNdOFViId6NP1.8GbtcMmPwPXvYEixbawdK','enfermeria',NULL,'activo','2026-04-11 16:35:41'),(5,'Sofia','Mendez','19123321','1176564433','sofiadoc@mail.com','$2b$10$gcIpx0tugvrLrCtC/h0l7uGPnFVEp3OI1rsrDOqJA2OY1wjMHfrYy','medico',1,'activo','2026-04-11 17:05:32'),(6,'Marta','Toledo','23444333','1123455432','martaadmision@mail.com','$2b$10$PKq2QnXauh34b524yW0gl.V2GMTSb31cyxyq/V/cKsGuXEfLjcAfa','admision_internacion',NULL,'activo','2026-04-11 17:13:49'),(7,'Gabriel','Torrez','20111333','26545345534','gabrieldoc@mail.com','$2b$10$N/Wv0i04mUfpKXD7IQsE2uoyNVL8De4gTx7UKDZk/g1Who9H.bDSi','medico',2,'activo','2026-04-11 17:48:28');
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -419,4 +426,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-04-12 19:57:36
+-- Dump completed on 2026-04-13  1:09:36

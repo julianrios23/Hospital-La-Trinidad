@@ -1,31 +1,50 @@
-extends ../layout
+﻿extends ../layout
 
 block content
   .container.mt-4
-    .card.border-primary
-      .card-header.bg-primary.text-white
-        h4.mb-0 <i class="bi bi-person-lines-fill"></i> Pacientes Pendientes de Internación
-      .card-body
-        .table-responsive
-          table.table.table-hover.align-middle
-            thead.table-light
-              tr
-                th Prioridad
-                th Paciente (DNI)
-                th Diagnóstico Guardia
-                th Tiempo Espera
-                th Acción
-            tbody
-              if pacientesEspera.length > 0
-                each p in pacientesEspera
+    .row.mb-4
+      .col-md-8
+        .card.border-primary
+          .card-header.bg-primary.text-white
+            h4.mb-0 
+              i.bi.bi-person-lines-fill.me-2
+              | Pacientes Pendientes de Internación
+          .card-body
+            .table-responsive
+              table.table.table-hover.align-middle
+                thead.table-light
                   tr
-                    td: span.badge(class=`bg-priority-${p.prioridad}`)= p.prioridad > 0 ? p.prioridad : 'No asignada'
-                    td #{p.nombre} #{p.apellido} (#{p.dni})
-                    td: em= p.diagnostico_guardia
-                    td= p.tiempo_transcurrido
-                    td
-                      a.btn.btn-sm.btn-primary(href=`/internacion/asignar-cama/${p.id_admision}`) 
-                        i.bi.bi-box-arrow-in-right
-                        |  Asignar Cama
-              else
-                tr: td.text-center(colspan="5") No hay pacientes en espera de cama.
+                    th Prioridad
+                    th Paciente (DNI)
+                    th Diagnóstico Guardia
+                    th Tiempo Espera
+                    th Acción
+                tbody
+                  if pacientesEspera && pacientesEspera.length > 0
+                    each p in pacientesEspera
+                      tr
+                        td
+                          span.badge(class="bg-priority-" + p.prioridad)= p.prioridad
+                        td #{p.nombre} #{p.apellido} (#{p.dni})
+                        td: em= p.diagnostico_guardia
+                        td= p.tiempo_transcurrido
+                        td
+                          a.btn.btn-sm.btn-primary(href="/internacion/pre-asignar/" + p.id_admision)
+                            i.bi.bi-box-arrow-in-right.me-1
+                            | Asignar Cama
+                  else
+                    tr
+                      td.text-center(colspan="5") No hay pacientes en espera de cama.
+      
+      .col-md-4
+        .card.border-0.shadow-lg.h-100
+          .card-body.text-center.py-4.d-flex.flex-column.justify-content-center
+            h5.mb-3.text-primary
+              i.bi.bi-list-ul.me-2
+              | Gestión de Pacientes
+            .mb-4
+              i.bi.bi-people-fill.display-1.text-primary.opacity-75
+            p.text-muted.mb-3 Accede a la lista completa de pacientes registrados en el sistema.
+            a.btn.btn-outline-primary.btn-lg.mt-auto(href="/lista-pacientes")
+              i.bi.bi-people-fill.me-2
+              | Ver Todos los Pacientes

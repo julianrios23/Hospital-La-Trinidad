@@ -25,7 +25,8 @@ block content
                 a.btn.btn-outline-secondary.btn-sm.ms-2(href="/lista-pacientes")
                   i.bi.bi-x.me-1
                   | Limpiar
-            a.btn.btn-primary.btn-sm(href="/")
+            - var homeLink = user && user.rol === 'admision_internacion' ? '/internacion/espera' : '/'
+            a.btn.btn-primary.btn-sm(href=homeLink)
               i.bi.bi-house.me-2
               | Volver al Inicio
 

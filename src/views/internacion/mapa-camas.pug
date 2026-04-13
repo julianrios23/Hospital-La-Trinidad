@@ -3,39 +3,180 @@ extends ../layout
 block content
   .container.mt-4
     h2.text-center.mb-4 🏥 Mapa de Gestión de Camas
-    
-    
 
-    //- Renderizado de Alas
-    each ala in alas
-      .ala-container(id=`ala-${ala.nombre_ala.replace(' ', '')}`)
-        h3.border-bottom.pb-2.mb-3= ala.nombre_ala
-        .row.row-cols-1.row-cols-md-5.g-4.mb-5
-          each habitacion in ala.habitaciones
-            .col
-              .card.h-100.shadow-sm
-                .card-header.bg-dark.text-white.text-center
-                  | Hab. #{habitacion.numero}
-                .card-body.p-2
-                  .row
-                    each cama in habitacion.camas
-                      .col-6.text-center
-                        //- Lógica de colores: Verde sólido libre, Naranja sólido ocupada
-                        - var btnClass = cama.estado_cama === 'Libre' ? 'btn-success' : 'btn-warning'
-                        - var btnStyle = cama.estado_cama === 'Libre' ? 'background-color: #006400 !important; border-color: #006400 !important;' : ''
-                        - var btnDisabled = !cama.existe ? '' : ''
-                        - var btnTitle = cama.estado_cama === 'Ocupada' ? 'Ver Paciente' : (cama.existe ? 'Asignar Cama' : 'Cama no creada')
-                        - var btnOnclick = cama.existe ? `gestionarCama(${cama.id_cama}, '${cama.estado_cama}')` : `alert('Cama no creada en el sistema')`
-                        button.btn.btn-sm.w-100.mb-1(
-                          class=btnClass
-                          style=btnStyle
-                          title=btnTitle
-                          onclick=btnOnclick
-                          disabled=btnDisabled
-                        )
-                          i.bi.bi-door-closed
+    - var isMedico = user && user.rol === 'medico'
+    - var isAdmision = user && user.rol === 'admision_internacion'
+
+    if isAdmision && selectedPatient
+      .alert.alert-info.d-flex.justify-content-between.align-items-center
+        .me-3
+          strong Paciente seleccionado:
+          |  #{selectedPatient.nombre} #{selectedPatient.apellido} (#{selectedPatient.dni}) - #{selectedPatient.diagnostico_guardia}
+        a.btn.btn-sm.btn-secondary(href="/internacion/pacientes-espera") Cambiar paciente
+    else if isAdmision
+      .alert.alert-warning
+        | Selecciona un paciente de la lista de espera para poder asignar una cama.
+    else if isMedico
+      .alert.alert-info
+        | Como médico, puedes hacer click en las camas ocupadas para ver la evolución de los pacientes internados.
+
+    if !tieneCamas
+      .alert.alert-warning.mt-3
+        strong Atención:
+        |  No hay camas definidas en el sistema. Crea registros en la tabla `camas` para poder asignar.
+
+  #bootstrapAlertWrapper.position-fixed.top-50.start-50.translate-middle.p-3(style="z-index: 1080; display: none; min-width: 280px; max-width: 420px; width: 90%;")
+    .alert.alert-danger.alert-dismissible.fade.show.text-center(role="alert" id="bootstrapAlert")
+      span#bootstrapAlertText
+      button.btn-close(type="button" aria-label="Close" onclick="hideBootstrapAlert()")
+
+  #confirmAssignModal.modal.fade(tabindex="-1" aria-labelledby="confirmAssignModalLabel" aria-hidden="true")
+    .modal-dialog.modal-dialog-centered
+      .modal-content
+        .modal-header
+          h5.modal-title#confirmAssignModalLabel Confirmar internación
+          button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+        .modal-body
+          p#confirmAssignModalText
+        .modal-footer
+          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+          button.btn.btn-primary(type="button" id="confirmAssignButton") Confirmar
+
+  //- Renderizado de Alas
+  each ala in alas
+    .ala-container(id=`ala-${ala.nombre_ala.replace(' ', '')}`)
+      h3.border-bottom.pb-2.mb-3= ala.nombre_ala
+      .row.row-cols-1.row-cols-md-5.g-4.mb-5
+        each habitacion in ala.habitaciones
+          .col
+            .card.h-100.shadow-sm
+              .card-header.bg-dark.text-white.text-center
+                | Hab. #{habitacion.numero}
+              .card-body.p-2
+                .row
+                  each cama in habitacion.camas
+                    .col-6.text-center
+                      //- Lógica de colores: Verde sólido libre, Naranja sólido ocupada
+                      - var btnClass = cama.estado_cama === 'Libre' ? (isMedico ? 'btn-secondary' : 'btn-success') : 'btn-warning'
+                      - var btnStyle = cama.estado_cama === 'Libre' ? (isMedico ? '' : 'background-color: #006400 !important; border-color: #006400 !important;') : ''
+                      - var btnDisabled = isMedico && cama.estado_cama === 'Libre'
+                      - var btnTitle = cama.estado_cama === 'Ocupada' ? 'Ver Paciente' : (isMedico ? 'Solo ver evoluciones' : 'Asignar Cama')
+                      button.btn.btn-sm.w-100.mb-1(type='button'
+                        class=btnClass + ' gestionar-cama'
+                        style=btnStyle
+                        title=btnTitle
+                        data-cama-id=cama.id_cama
+                        data-cama-estado=cama.estado_cama
+                        data-internacion-id=cama.id_internacion
+                        disabled=btnDisabled
+                      )
+                        i.bi.bi-door-closed
+                        br
+                        small Cama #{cama.nombre_cama}
+                        if cama.existe && cama.estado_cama === 'Ocupada'
                           br
-                          small Cama #{cama.nombre_cama}
-                          if cama.existe && cama.estado_cama === 'Ocupada'
-                            br
-                            small.text-white= cama.paciente_nombre
+                          small.text-white= cama.paciente_nombre
+
+    script.
+      function showBootstrapAlert(message, type = 'danger') {
+        const wrapper = document.getElementById('bootstrapAlertWrapper');
+        const alert = document.getElementById('bootstrapAlert');
+        const alertText = document.getElementById('bootstrapAlertText');
+
+        if (!wrapper || !alert || !alertText) return;
+        alert.className = `alert alert-${type} alert-dismissible fade show text-center`;
+        alertText.textContent = message;
+        wrapper.style.display = 'block';
+      }
+
+      function hideBootstrapAlert() {
+        const wrapper = document.getElementById('bootstrapAlertWrapper');
+        if (wrapper) {
+          wrapper.style.display = 'none';
+        }
+      }
+
+      console.log('Script cargado, idAdmisionPendiente:', !{JSON.stringify(idAdmisionPendiente || null)});
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOMContentLoaded fired');
+        const idAdmision = !{JSON.stringify(idAdmisionPendiente || null)};
+        const userRol = !{JSON.stringify(user ? user.rol : null)};
+        const isMedico = userRol === 'medico';
+        let pendingAssignment = null;
+        console.log('idAdmision:', idAdmision, 'userRol:', userRol, 'isMedico:', isMedico);
+
+        const confirmAssignModalElement = document.getElementById('confirmAssignModal');
+        const confirmAssignModal = confirmAssignModalElement ? new bootstrap.Modal(confirmAssignModalElement) : null;
+        const confirmAssignButton = document.getElementById('confirmAssignButton');
+
+        if (confirmAssignButton) {
+          confirmAssignButton.addEventListener('click', function() {
+            if (!pendingAssignment) return;
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/internacion/asignar-cama';
+
+            const inputAdmision = document.createElement('input');
+            inputAdmision.type = 'hidden';
+            inputAdmision.name = 'idAdmision';
+            inputAdmision.value = pendingAssignment.idAdmision;
+
+            const inputCama = document.createElement('input');
+            inputCama.type = 'hidden';
+            inputCama.name = 'idCama';
+            inputCama.value = pendingAssignment.idCama;
+
+            form.appendChild(inputAdmision);
+            form.appendChild(inputCama);
+            document.body.appendChild(form);
+            if (confirmAssignModal) {
+              confirmAssignModal.hide();
+            }
+            form.submit();
+          });
+        }
+
+        const botones = document.querySelectorAll('.gestionar-cama');
+        console.log('Botones encontrados:', botones.length);
+
+        botones.forEach(btn => {
+          console.log('Configurando botón:', btn.dataset.camaId, btn.dataset.camaEstado, btn.disabled);
+          btn.addEventListener('click', function() {
+            console.log('Botón clickeado:', this.dataset.camaId, this.dataset.camaEstado);
+            const idCama = this.dataset.camaId;
+            const estado = this.dataset.camaEstado;
+
+            if (!idCama || idCama === 'null') {
+              showBootstrapAlert('Esta cama no está configurada en el sistema. Contacte al administrador.', 'danger');
+              return;
+            }
+
+            if (estado === 'Libre') {
+              // Solo permitir asignación si NO es médico
+              if (isMedico) {
+                showBootstrapAlert('Como médico, solo puedes ver evoluciones de pacientes internados.', 'warning');
+                return;
+              }
+
+              if (!idAdmision) {
+                showBootstrapAlert('Primero selecciona un paciente de la lista de espera.', 'warning');
+                window.location.href = '/internacion/pacientes-espera';
+                return;
+              }
+
+              pendingAssignment = { idAdmision, idCama };
+              document.getElementById('confirmAssignModalText').textContent = '¿Confirmar internación en esta cama?';
+              confirmAssignModal.show();
+            } else {
+              // Cama ocupada - redirigir a evolución (todos los roles pueden ver evoluciones)
+              const idInternacion = this.dataset.internacionId;
+              if (idInternacion) {
+                window.location.href = `/internacion/evolucion/${idInternacion}`;
+              } else {
+                showBootstrapAlert('No se pudo encontrar la internación para esta cama.', 'danger');
+              }
+            }
+          });
+        });
+      });

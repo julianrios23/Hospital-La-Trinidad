@@ -8,12 +8,20 @@ block content
         .card.bg-light
           .card-body.d-flex.justify-content-between.align-items-center
             div
-              h3= internacion.paciente_nombre
+              h3= internacion.paciente.apellido + ', ' + internacion.paciente.nombre
               p.text-muted Ala: #{internacion.nombre_ala} | Hab: #{internacion.numero_hab} | Cama: #{internacion.nombre_cama}
-            if !internacion.autorizado_alta_medica
-              button.btn.btn-warning(onclick="darAltaMedica()") 
-                i.bi.bi-check2-circle
-                |  Autorizar Alta Médica
+              if internacion.autorizado_alta_medica
+                span.badge.bg-success Alta Médica Autorizada
+            
+            div
+              if !internacion.autorizado_alta_medica && user && user.rol === 'medico'
+                button.btn.btn-warning(onclick="showConfirmAltaModal()") 
+                  i.bi.bi-check2-circle
+                  |  Autorizar Alta Médica
+              if internacion.autorizado_alta_medica && user && user.rol === 'admision_internacion'
+                button.btn.btn-danger(type="button" onclick="showConfirmFinalizarModal()")
+                  i.bi.bi-box-arrow-right
+                  |  Finalizar y Liberar Cama
 
       //- Historial de Evoluciones
       .col-md-7
@@ -21,14 +29,18 @@ block content
         each evo in evoluciones
           .card.mb-3.border-start.border-info.border-4
             .card-body
-              h6.card-title.text-primary= evo.fecha_formateada
+              .d-flex.justify-content-between.align-items-center.mb-2
+                h6.card-title.text-primary.mb-0= evo.fecha_formateada
+                small.text-muted
+                  i.bi.bi-person-badge
+                  |  #{evo.medico_nombre}
               p.card-text= evo.evolucion_clinica
               hr
               small.text-muted Tratamiento: #{evo.tratamiento_actual}
 
-      //- Formulario para Nueva Evolución (Solo si no tiene alta)
+      //- Formulario para Nueva Evolución (Solo si no tiene alta y el usuario es médico)
       .col-md-5
-        if !internacion.autorizado_alta_medica
+        if !internacion.autorizado_alta_medica && user && user.rol === 'medico'
           .card.shadow-sm
             .card-header.bg-info.text-white Nueva Entrada de Piso
             .card-body
@@ -40,3 +52,122 @@ block content
                   label.form-label Tratamiento / Medicación
                   textarea.form-control(name="tratamiento" rows="3")
                 button.btn.btn-info.w-100(type="submit") Guardar Evolución
+
+  #bootstrapAlertWrapper.position-fixed.top-50.start-50.translate-middle.p-3(style="z-index: 1080; display: none; min-width: 280px; max-width: 420px; width: 90%;")
+    .alert.alert-success.alert-dismissible.fade.show.text-center(role="alert" id="bootstrapAlert")
+      span#bootstrapAlertText
+      button.btn-close(type="button" aria-label="Close" onclick="hideBootstrapAlert()")
+
+  #confirmAltaModal.modal.fade(tabindex="-1" aria-labelledby="confirmAltaModalLabel" aria-hidden="true")
+    .modal-dialog.modal-dialog-centered
+      .modal-content
+        .modal-header
+          h5.modal-title#confirmAltaModalLabel Autorizar Alta Médica
+          button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+        .modal-body
+          p ¿Confirmar autorización de alta médica?
+        .modal-footer
+          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+          button.btn.btn-warning(type="button" id="confirmAltaButton") Confirmar
+
+  #confirmFinalizarModal.modal.fade(tabindex="-1" aria-labelledby="confirmFinalizarModalLabel" aria-hidden="true")
+    .modal-dialog.modal-dialog-centered
+      .modal-content
+        .modal-header
+          h5.modal-title#confirmFinalizarModalLabel Finalizar Internación
+          button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+        .modal-body
+          p ¿Confirma que el paciente se retira y se libera la cama?
+        .modal-footer
+          button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+          button.btn.btn-danger(type="button" id="confirmFinalizarButton") Confirmar
+
+  script.
+    function showBootstrapAlert(message, type = 'success') {
+      const wrapper = document.getElementById('bootstrapAlertWrapper');
+      const alert = document.getElementById('bootstrapAlert');
+      const alertText = document.getElementById('bootstrapAlertText');
+
+      alert.className = `alert alert-${type} alert-dismissible fade show text-center`;
+      alertText.textContent = message;
+      wrapper.style.display = 'block';
+    }
+
+    function hideBootstrapAlert() {
+      const wrapper = document.getElementById('bootstrapAlertWrapper');
+      if (wrapper) {
+        wrapper.style.display = 'none';
+      }
+    }
+
+    let confirmAltaModal, confirmFinalizarModal;
+
+    function showConfirmAltaModal() {
+      if (confirmAltaModal) {
+        confirmAltaModal.show();
+      }
+    }
+
+    function showConfirmFinalizarModal() {
+      if (confirmFinalizarModal) {
+        confirmFinalizarModal.show();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      confirmAltaModal = new bootstrap.Modal(document.getElementById('confirmAltaModal'));
+      confirmFinalizarModal = new bootstrap.Modal(document.getElementById('confirmFinalizarModal'));
+
+      const confirmAltaButton = document.getElementById('confirmAltaButton');
+      const confirmFinalizarButton = document.getElementById('confirmFinalizarButton');
+
+      if (confirmAltaButton) {
+        confirmAltaButton.addEventListener('click', function() {
+          fetch(`/internacion/autorizar-alta/${#{internacion.id_internacion}}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          })
+          .then(response => {
+            if (response.ok) {
+              confirmAltaModal.hide();
+              showBootstrapAlert('Alta médica autorizada exitosamente', 'success');
+              setTimeout(() => location.reload(), 1400);
+            } else {
+              confirmAltaModal.hide();
+              showBootstrapAlert('Error al autorizar el alta médica', 'danger');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            confirmAltaModal.hide();
+            showBootstrapAlert('Error al autorizar el alta médica', 'danger');
+          });
+        });
+      }
+
+      if (confirmFinalizarButton) {
+        confirmFinalizarButton.addEventListener('click', function() {
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = '/internacion/finalizar';
+
+          const inputInternacion = document.createElement('input');
+          inputInternacion.type = 'hidden';
+          inputInternacion.name = 'idInternacion';
+          inputInternacion.value = #{internacion.id_internacion};
+
+          const inputCama = document.createElement('input');
+          inputCama.type = 'hidden';
+          inputCama.name = 'idCama';
+          inputCama.value = #{internacion.cama_id};
+
+          form.appendChild(inputInternacion);
+          form.appendChild(inputCama);
+          document.body.appendChild(form);
+          confirmFinalizarModal.hide();
+          form.submit();
+        });
+      }
+    });

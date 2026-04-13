@@ -62,13 +62,12 @@ router.get('/atender/:id', ensureAuthenticated, ensureNotInternacion, hospitalCo
 router.post('/guardar-diagnostico', ensureAuthenticated, ensureNotInternacion, hospitalController.guardarDiagnostico);
 
 // --- RUTAS DE INTERNACIÓN ---
-router.get('/internacion/espera', ensureAuthenticated, ensureInternacion, hospitalController.renderEspera);
-router.get('/internacion/mapa-camas', ensureAuthenticated, ensureInternacion, hospitalController.renderMapaCamas);
+// NOTE: Las rutas de internación específicas se manejan en src/routes/internacionRoutes.js
 
 // --- RUTAS DE PACIENTES ---
-router.get('/lista-pacientes', ensureAuthenticated, ensureNotInternacion, hospitalController.renderListaPacientes);
-router.get('/pacientes/:id/editar', ensureAuthenticated, ensureNotInternacion, hospitalController.renderEditarPaciente);
-router.post('/pacientes/:id/actualizar', ensureAuthenticated, ensureNotInternacion, hospitalController.actualizarPaciente);
+router.get('/lista-pacientes', ensureAuthenticated, hospitalController.renderListaPacientes);
+router.get('/pacientes/:id/editar', ensureAuthenticated, hospitalController.renderEditarPaciente);
+router.post('/pacientes/:id/actualizar', ensureAuthenticated, hospitalController.actualizarPaciente);
 
 // --- RUTAS DE ADMINISTRACIÓN ---
 router.get('/admin/usuarios', ensureAdmin, hospitalController.renderAdminUsuarios);

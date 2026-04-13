@@ -57,7 +57,7 @@ block content
       .card.border-0.shadow-sm
         .card-header.bg-success.text-white.fw-bold
           i.bi.bi-stethoscope.me-2
-          | Diagnóstico y Tratamiento Médico
+          | Diagnóstico y Tratamiento 
         .card-body
           form(action="/guardar-diagnostico", method="POST")
             input(type="hidden", name="admision_id", value=admision_id)
@@ -72,7 +72,7 @@ block content
                 textarea.form-control(name="tratamiento_medicacion", rows="4", placeholder="Medicamentos administrados, dosis, vía de administración...")
 
               .col-md-6.mb-4
-                label.form-label.fw-bold.h6.text-warning Indicaciones al Alta
+                label.form-label.fw-bold.h6.text-warning Indicaciones 
                 textarea.form-control(name="indicaciones_alta", rows="4", placeholder="Instrucciones para el paciente, controles futuros, recomendaciones...")
 
             .form-check.form-switch.mb-4.p-3.bg-light.rounded

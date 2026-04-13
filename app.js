@@ -36,13 +36,12 @@ app.use(express.static(path.join(__dirname, 'src', 'public')));
 // 3. RUTAS
 // IMPORTANTE: Eliminamos cualquier app.get('/') que use res.send()
 app.use('/', hospitalRoutes)
+app.use('/internacion', internacionRoutes);
 
 // Manejo de errores 404
 app.use((req, res) => {
     res.status(404).render('utiles/error', { mensaje: 'La página solicitada no existe.' });
 });
-//internacion routes
-app.use('/internacion', internacionRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

@@ -695,7 +695,8 @@ const hospitalController = {
 
             // Determinar estado final
             const estadoAtencion = requiere_internacion === '1' ? 'internacion' : 'completada';
-            const estadoAdmision = requiere_internacion === '1' ? 'Internado' : 'Alta';
+            // Si requiere internación, NO lo marcamos como 'Internado' todavía, sino que sigue en atención hasta que admisión le asigne la cama
+            const estadoAdmision = requiere_internacion === '1' ? 'En Atención' : 'Alta';
 
             // Insertar atención médica
             await db.query(
