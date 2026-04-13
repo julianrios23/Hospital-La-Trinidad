@@ -1,50 +1,75 @@
 ﻿extends ../layout
 
 block content
+  // contenedor principal
   .container.mt-4
+    // fila con dos columnas
     .row.mb-4
+      // columna izquierda con tabla
       .col-md-8
+        // tarjeta con lista de pacientes
         .card.border-primary
+          // encabezado de tarjeta
           .card-header.bg-primary.text-white
             h4.mb-0 
               i.bi.bi-person-lines-fill.me-2
-              | Pacientes Pendientes de Internación
+              | Pacientes Pendientes de Internacion
+          // cuerpo con tabla
           .card-body
+            // tabla responsiva
             .table-responsive
               table.table.table-hover.align-middle
+                // encabezados de tabla
                 thead.table-light
                   tr
                     th Prioridad
                     th Paciente (DNI)
-                    th Diagnóstico Guardia
+                    th Diagnostico Guardia
                     th Tiempo Espera
-                    th Acción
+                    th Accion
+                // filas de pacientes
                 tbody
+                  // valido si hay pacientes en espera
                   if pacientesEspera && pacientesEspera.length > 0
+                    // itero sobre cada paciente
                     each p in pacientesEspera
                       tr
+                        // badge de prioridad
                         td
                           span.badge(class="bg-priority-" + p.prioridad)= p.prioridad
+                        // nombre y dni del paciente
                         td #{p.nombre} #{p.apellido} (#{p.dni})
+                        // diagnostico de guardia
                         td: em= p.diagnostico_guardia
+                        // tiempo que lleva esperando
                         td= p.tiempo_transcurrido
+                        // accion para asignar cama
                         td
+                          // boton para asignar cama
                           a.btn.btn-sm.btn-primary(href="/internacion/pre-asignar/" + p.id_admision)
                             i.bi.bi-box-arrow-in-right.me-1
                             | Asignar Cama
                   else
+                    // mensaje si no hay pacientes
                     tr
                       td.text-center(colspan="5") No hay pacientes en espera de cama.
       
+      // columna derecha con acceso a pacientes
       .col-md-4
+        // tarjeta de navegacion
         .card.border-0.shadow-lg.h-100
+          // cuerpo de tarjeta
           .card-body.text-center.py-4.d-flex.flex-column.justify-content-center
+            // titulo de seccion
             h5.mb-3.text-primary
               i.bi.bi-list-ul.me-2
-              | Gestión de Pacientes
+              | Gestion de Pacientes
+            // icono grande
             .mb-4
               i.bi.bi-people-fill.display-1.text-primary.opacity-75
+            // descripcion
             p.text-muted.mb-3 Accede a la lista completa de pacientes registrados en el sistema.
+            // boton para ver todos los pacientes
             a.btn.btn-outline-primary.btn-lg.mt-auto(href="/lista-pacientes")
               i.bi.bi-people-fill.me-2
               | Ver Todos los Pacientes

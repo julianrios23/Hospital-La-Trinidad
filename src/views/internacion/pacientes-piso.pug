@@ -1,35 +1,54 @@
 extends ../layout
 
 block content
+  // contenedor principal con espaciado
   .container.mt-4
-    h2 👨‍⚕️ Pacientes Internados (Gestión Clínica)
+    // titulo de la pagina
+    h2 pacientes Internados (Gestion Clinica)
+    // contenedor de alas
     .row.mt-3
+      // itero sobre cada ala del piso
       each ala in internadosPorAla
+        // columna para cada ala
         .col-md-12.mb-4
+          // tarjeta de ala
           .card.shadow-sm
+            // encabezado con nombre del ala
             .card-header.bg-dark.text-white
               h5.mb-0 Ala: #{ala.nombre}
+            // cuerpo con tabla de pacientes
             .card-body
+              // tabla con pacientes de ala
               table.table.table-hover
+                // encabezados de tabla
                 thead
                   tr
                     th Hab/Cama
                     th Paciente
                     th Ingreso
                     th Estado Alta
-                    th Acción
+                    th Accion
+                // filas con datos de pacientes
                 tbody
+                  // itero sobre cada paciente de ala
                   each p in ala.pacientes
                     tr
+                      // numero de habitacion y cama
                       td Hab #{p.numero_hab} - Cama #{p.nombre_cama}
+                      // nombre del paciente
                       td #{p.paciente_nombre}
+                      // fecha de ingreso
                       td= p.fecha_ingreso
+                      // estado de alta
                       td
+                        // badge segun estado de alta
                         if p.autorizado_alta_medica
                           span.badge.bg-success Alta Autorizada
                         else
                           span.badge.bg-warning En Tratamiento
+                      // accion para ver evolucion
                       td
+                        // boton para ver evolucion del paciente
                         a.btn.btn-sm.btn-outline-primary(href=`/internacion/evolucion/${p.id_internacion}`)
                           i.bi.bi-journal-medical
-                          |  Ver Evolución
+                          |  Ver Evolucion

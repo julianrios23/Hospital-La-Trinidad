@@ -1,53 +1,73 @@
 extends ../layout
 
 block content
+  // titulo de la pagina
   h4.mb-4 
     i.bi.bi-heart-pulse-fill.text-danger.me-2
-    | Panel de Triage (Enfermería)
+    | Panel de Triage (Enfermeria)
 
+  // contenedor con dos columnas
   .row
-    // Lista de espera a la izquierda
+    // columna izquierda con lista de pacientes
     .col-md-4
+      // tarjeta con lista
       .card.border-0.shadow-sm
+        // encabezado de lista
         .card-header.bg-white.fw-bold 
           i.bi.bi-people.me-2
           | Pacientes en Espera
+        // grupo de items clickeables
         .list-group.list-group-flush.overflow-auto(style="max-height: 70vh;")
+          // itero sobre cada paciente en espera
           each paciente in listaEspera
+            // item de paciente clickeable
             a.list-group-item.list-group-item-action.py-3(href=`/triage/${paciente.id_admision}`)
+              // fila con nombre y hora
               .d-flex.w-100.justify-content-between.align-items-center.mb-1
+                // nombre del paciente
                 h6.mb-0.fw-bold.text-primary= `${paciente.apellido}, ${paciente.nombre}`
+                // badge con hora de ingreso
                 small.badge.bg-light.text-dark.border= paciente.hora_ingreso
               
+              // seccion de dni
               .mb-1
                 small.text-muted
                   i.bi.bi-person-badge.me-1
                   | DNI: #{paciente.dni}
               
-              // --- Nueva sección de síntomas declarados ---
+              // seccion de sintomas declarados
               .mt-2.p-2.bg-light.rounded-1.border-start.border-3.border-info
                 small.text-dark.d-block(style="font-style: italic;")
                   i.bi.bi-chat-left-text.me-1.text-info
-                  strong Síntoma: 
+                  strong Sintoma: 
                   span= paciente.motivo_consulta || 'No especificado'
 
-    // Formulario de Triage a la derecha
+    // columna derecha con formulario de triage
     .col-md-8
+      // valido si hay paciente seleccionado
       if seleccionado
+        // tarjeta con formulario
         .card.border-0.shadow-sm
+          // cuerpo del formulario
           .card-body
+            // encabezado con nombre del paciente
             .d-flex.justify-content-between.align-items-center
               h5.card-title.text-primary.mb-0 
                 i.bi.bi-clipboard2-check.me-2
-                | Atención: #{seleccionado.apellido}, #{seleccionado.nombre}
+                | Atencion: #{seleccionado.apellido}, #{seleccionado.nombre}
               
+            // linea separadora
             hr
+            // formulario que envia datos
             form(action="/guardar-triage", method="POST")
+              // id oculto de admision
               input(type="hidden", name="id_admision", value=seleccionado.id_admision)
               
               .row.g-3
+                // campo clasificacion de riesgo
                 .col-md-6
-                  label.form-label.fw-bold Clasificación de Riesgo
+                  label.form-label.fw-bold Clasificacion de Riesgo
+                  // selector de prioridad
                   select.form-select.border-primary.triage-prioridad(name="prioridad", required)
                     option(value="" disabled selected) Seleccione nivel...
                     option(value="1" class="triage-option-1") Nivel 1 - Emergencia (Riesgo Vital)
@@ -56,48 +76,62 @@ block content
                     option(value="4" class="triage-option-4") Nivel 4 - Menos Urgente
                     option(value="5" class="triage-option-5") Nivel 5 - No Urgente
                 
+                // campo presion arterial
                 .col-md-3
-                  label.form-label.fw-bold Presión Art.
+                  label.form-label.fw-bold Presion Art.
                   input.form-control(type="text", name="presion", placeholder="120/80", maxlength="7")
+                // campo temperatura
                 .col-md-3
-                  label.form-label.fw-bold Temp. (°C)
+                  label.form-label.fw-bold Temp. (C)
                   input.form-control(type="number", step="0.1", name="temperatura", min="35", max="42", placeholder="36.5")
                 
+                // campo frecuencia cardiaca
                 .col-md-4
-                  label.form-label.fw-bold Frec. Cardíaca (LPM)
+                  label.form-label.fw-bold Frec. Cardiaca (LPM)
                   input.form-control(type="number", name="frecuencia", min="40", max="200", placeholder="Ej: 80")
+                // campo saturacion de oxigeno
                 .col-md-4
-                  label.form-label.fw-bold Sat. Oxígeno (%)
+                  label.form-label.fw-bold Sat. Oxigeno (%)
                   input.form-control(type="number", name="saturacion", min="0", max="100", placeholder="Ej: 98")
                 
+                // campo observaciones
                 .col-12
-                  label.form-label.fw-bold Observaciones de Enfermería (Triage)
+                  label.form-label.fw-bold Observaciones de Enfermeria (Triage)
                   textarea.form-control(name="observaciones", rows="3", placeholder="Detalles observados durante la toma de signos...")
 
+              // boton enviar
               button.btn.btn-primary.mt-4.w-100.py-2(type="submit") 
                 i.bi.bi-send-check.me-2
-                | Finalizar Triage y Enviar a Médico
+                | Finalizar Triage y Enviar a Medico
       else
+        // mensaje cuando no hay paciente seleccionado
         .text-center.py-5.text-muted.bg-white.rounded.shadow-sm
           i.bi.bi-arrow-left-circle.display-1.text-light
           p.mt-3.fs-5 Seleccione un paciente de la lista para iniciar el triage.
 
   script.
+    // evento al cargar el documento
     document.addEventListener('DOMContentLoaded', function() {
+      // busco el campo presion
       const presionInput = document.querySelector('input[name="presion"]');
       if (!presionInput) return;
 
+      // evento para formatear presion como 120/80
       presionInput.addEventListener('input', function() {
+        // elimino caracteres no numericos
         let digits = this.value.replace(/\D/g, '');
+        // agrego barra diagonal despues del tercer digito
         if (digits.length > 3) {
           digits = digits.slice(0, 3) + '/' + digits.slice(3, 5);
         }
         this.value = digits;
       });
 
-      // Aplicar colores a las opciones del select de triage
+      // busco el selector de prioridad
       const prioridadSelect = document.querySelector('select[name="prioridad"]');
+      // valido si existe el selector
       if (prioridadSelect) {
+        // defino colores para cada nivel de prioridad
         const triageColors = {
           '1': '#dc3545', // Rojo - Emergencia
           '2': '#fd7e14', // Naranja - Muy Urgente
@@ -106,19 +140,25 @@ block content
           '5': '#0dcaf0'  // Azul - No Urgente
         };
 
+        // funcion para actualizar color del select
         function updateSelectColor() {
+          // obtengo valor seleccionado
           const selectedValue = prioridadSelect.value;
+          // aplico color si existe en el mapa
           if (selectedValue && triageColors[selectedValue]) {
             prioridadSelect.style.color = triageColors[selectedValue];
             prioridadSelect.style.fontWeight = '700';
           } else {
-            prioridadSelect.style.color = '#0d6efd'; // Color por defecto
+            // uso color por defecto
+            prioridadSelect.style.color = '#0d6efd';
             prioridadSelect.style.fontWeight = 'normal';
           }
         }
 
+        // evento al cambiar seleccion
         prioridadSelect.addEventListener('change', updateSelectColor);
-        updateSelectColor(); // Aplicar color inicial si hay selección
+        // aplico color inicial
+        updateSelectColor();
       }
 
       // Validación de rangos

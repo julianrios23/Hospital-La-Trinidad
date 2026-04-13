@@ -1,61 +1,72 @@
 extends ../layout
 
 block content
+  // contenedor centrado del formulario
   .row.justify-content-center
     .col-md-10
+      // tarjeta principal del registro
       .card.shadow-sm.border-0
+        // encabezado con titulo del formulario
         .card-header.bg-success.text-white.py-3
           h5.mb-0 
             i.bi.bi-person-plus-fill.me-2
             | Registro de Nuevo Paciente - La Trinidad
+        // cuerpo del formulario
         .card-body.p-4
+          // formulario que envia datos al servidor
           form(action="/guardar-paciente", method="POST" id="formRegistro")
+            // seccion datos personales
             .row
               h6.text-primary.border-bottom.pb-2 Datos Personales
               .col-md-4.mb-3
                 label.form-label DNI
-                // Solo números
-                input.form-control.bg-light(type="text" name="dni" value=dni readonly pattern="[0-9]+" title="Solo se permiten números")
+                // campo dni solo numericos
+                input.form-control.bg-light(type="text" name="dni" value=dni readonly pattern="[0-9]+" title="Solo se permiten numeros")
               .col-md-4.mb-3
                 label.form-label Nombre
-                // Solo letras y espacios 
-                input.form-control(type="text" name="nombre" required pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+" title="Solo se permiten letras")
+                // campo nombre solo letras y espacios
+                input.form-control(type="text" name="nombre" required pattern="[a-zA-ZaeiouAEIOUnnN\\s]+" title="Solo se permiten letras")
               .col-md-4.mb-3
                 label.form-label Apellido
-                // Solo letras y espacios
-                input.form-control(type="text" name="apellido" required pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+" title="Solo se permiten letras")
+                // campo apellido solo letras y espacios
+                input.form-control(type="text" name="apellido" required pattern="[a-zA-ZaeiouAEIOUnnN\\s]+" title="Solo se permiten letras")
               
               .col-md-4.mb-3
                 label.form-label Fecha de Nacimiento
+                // campo de fecha
                 input.form-control(type="date" name="fecha_nacimiento" required)
               .col-md-4.mb-3
-                label.form-label Género
+                label.form-label Genero
+                // selector de genero
                 select.form-select(name="genero")
                   option(value="Masculino") Masculino 
                   option(value="Femenino") Femenino 
                   option(value="Otro") Otro 
               .col-md-4.mb-3
                 label.form-label Obra Social
+                // selector de obras sociales
                 select.form-select(name="obra_social_id")
                   each os in obrasSociales
                     option(value=os.id_obra_social)= os.nombre_obra_social
 
               .col-md-6.mb-3
-                label.form-label Teléfono
-                // Solo números
-                input.form-control(type="text" name="telefono" pattern="[0-9]+" title="Solo se permiten números")
+                label.form-label Telefono
+                // campo telefono solo numeros
+                input.form-control(type="text" name="telefono" pattern="[0-9]+" title="Solo se permiten numeros")
               .col-md-6.mb-3
-                label.form-label Dirección
-                // Alfanumérico 
-                input.form-control(type="text" name="direccion" pattern="[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\\s,.-]+" title="Dirección alfanumérica permitida")
+                label.form-label Direccion
+                // campo direccion alfanumerico con caracteres especiales
+                input.form-control(type="text" name="direccion" pattern="[a-zA-Z0-9aeiouAEIOUnnN\\s,.-]+" title="Direccion alfanumerica permitida")
 
+            // seccion motivo de ingreso
             .row.mt-3
               h6.text-primary.border-bottom.pb-2 Motivo de Ingreso a Guardia
               .col-12.mb-3
-                label.form-label Descripción breve del síntoma (Ventanilla)
-                // Alfanumérico en textarea
-                textarea.form-control(name="motivo_consulta" rows="2" placeholder="Ej: Dolor torácico..." required)
+                label.form-label Descripcion breve del sintoma (Ventanilla)
+                // area de texto para motivo dela consulta
+                textarea.form-control(name="motivo_consulta" rows="2" placeholder="Ej: Dolor toracico..." required)
 
+            // botones de accion
             .d-flex.justify-content-end.gap-2.mt-4
               a.btn.btn-light(href="/") Cancelar
               button.btn.btn-success.px-5(type="submit") 

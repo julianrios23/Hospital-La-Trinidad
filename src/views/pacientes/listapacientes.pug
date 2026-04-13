@@ -1,13 +1,17 @@
 extends ../layout
 
 block content
+  // titulo de la pagina
   h4.mb-4
     i.bi.bi-people-fill.text-primary.me-2
     | Lista de Pacientes Registrados
 
+  // contenedor principal con tarjeta de lista
   .row.mb-4
     .col-12
+      // tarjeta con encabezado y tabla de pacientes
       .card.border-0.shadow-sm
+        // encabezado con titulo, buscador y botones
         .card-header.bg-white.fw-bold.d-flex.justify-content-between.align-items-center
           span
             i.bi.bi-list.me-2
@@ -15,7 +19,9 @@ block content
               | Resultados de búsqueda: "#{search}" (#{pacientes.length} de #{totalPacientes})
             else
               | Pacientes (#{pacientes.length} de #{totalPacientes})
+          // seccion de búsqueda y acciones
           .d-flex.gap-2
+            // formulario de búsqueda por dni
             form.d-flex.me-3(action="/lista-pacientes", method="GET")
               input.form-control.form-control-sm(type="text", name="search", placeholder="Buscar por DNI...", value=search || '', style="width: 200px;")
               button.btn.btn-outline-primary.btn-sm.ms-2(type="submit")
@@ -30,8 +36,10 @@ block content
               i.bi.bi-house.me-2
               | Volver al Inicio
 
+        // tabla con listado de pacientes
         .table-responsive
           table.table.table-hover.align-middle
+            // encabezados de tabla
             thead.table-light
               tr
                 th DNI
@@ -41,6 +49,7 @@ block content
                 th Género
                 th Obra Social
                 th Acciones
+            // filas con datos de pacientes
             tbody
               each paciente in pacientes
                 tr
@@ -55,15 +64,20 @@ block content
                     else
                       small.text-muted Sin obra social
                   td
+                    // boton para editar paciente
                     a.btn.btn-sm.btn-outline-primary(href=`/pacientes/${paciente.id_paciente}/editar`)
                       i.bi.bi-pencil.me-1
                       | Editar
 
-        // Paginación
+        // seccion de paginacion
         if totalPages > 1
+          // navegacion de paginas
           .card-footer.bg-light
+            // controles de paginacion
             nav(aria-label="Paginación de pacientes")
+              // lista de numeros de pagina
               ul.pagination.justify-content-center.mb-0
+                // boton pagina anterior
                 if hasPrev
                   li.page-item
                     a.page-link(href=`/lista-pacientes?page=${prevPage}${search ? `&search=${search}` : ''}`)
@@ -75,23 +89,28 @@ block content
                       i.bi.bi-chevron-left.me-1
                       | Anterior
 
+                // calculo de rango de paginas visible
                 - var startPage = Math.max(1, currentPage - 2)
                 - var endPage = Math.min(totalPages, currentPage + 2)
+                // numeros de paginas clickeables
                 - for (var i = startPage; i <= endPage; i++)
                   li.page-item(class=i === currentPage ? 'active' : '')
                     a.page-link(href=`/lista-pacientes?page=${i}${search ? `&search=${search}` : ''}`)= i
 
+                // boton pagina siguiente
                 if hasNext
                   li.page-item
                     a.page-link(href=`/lista-pacientes?page=${nextPage}${search ? `&search=${search}` : ''}`)
                       | Siguiente
                       i.bi.bi-chevron-right.ms-1
                 else
+                  // boton deshabilitado cuando no hay siguiente
                   li.page-item.disabled
                     span.page-link
                       | Siguiente
                       i.bi.bi-chevron-right.ms-1
 
+            // informacion de pagina actual
             .text-center.mt-2
               small.text-muted
                 if search

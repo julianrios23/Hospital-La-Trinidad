@@ -1,13 +1,17 @@
 extends ../layout
 
 block content
+  // titulo de la pagina
   h4.mb-4
     i.bi.bi-person-fill-edit.text-primary.me-2
     | Editar Paciente
 
+  // contenedor principal del formulario
   .row.mb-4
     .col-12
+      // tarjeta con encabezado y cuerpo del formulario
       .card.border-0.shadow-sm
+        // encabezado con titulo y boton para volver
         .card-header.bg-white.fw-bold.d-flex.justify-content-between.align-items-center
           span
             i.bi.bi-pencil.me-2
@@ -16,8 +20,11 @@ block content
             i.bi.bi-arrow-left.me-2
             | Volver a la Lista
 
+        // cuerpo del formulario con campos editables
         .card-body
+          // formulario que envia datos al servidor
           form(action=`/pacientes/${paciente.id_paciente}/actualizar`, method="POST")
+            // fila con dni y apellido
             .row
               .col-md-6.mb-3
                 label.form-label.fw-bold(for="dni") DNI
@@ -25,6 +32,7 @@ block content
               .col-md-6.mb-3
                 label.form-label.fw-bold(for="apellido") Apellido
                 input.form-control(type="text", id="apellido", name="apellido", value=paciente.apellido, readonly)
+            // fila con nombre y fecha de nacimiento
             .row
               .col-md-6.mb-3
                 label.form-label.fw-bold(for="nombre") Nombre
@@ -32,6 +40,7 @@ block content
               .col-md-6.mb-3
                 label.form-label.fw-bold(for="fecha_nacimiento") Fecha de Nacimiento
                 input.form-control(type="date", id="fecha_nacimiento", name="fecha_nacimiento", value=paciente.fecha_nacimiento.toISOString().split('T')[0], readonly)
+            // fila con genero y edad
             .row
               .col-md-6.mb-3
                 label.form-label.fw-bold(for="genero") Género
@@ -39,6 +48,7 @@ block content
               .col-md-6.mb-3
                 label.form-label.fw-bold(for="edad") Edad
                 input.form-control(type="text", id="edad", name="edad", value=paciente.edad, readonly)
+            // fila con obra social y telefono (campos editables)
             .row
               .col-md-6.mb-3
                 label.form-label.fw-bold(for="obrasocial") Obra Social
@@ -47,13 +57,16 @@ block content
                     option(value=obra.id_obra_social, selected=(obra.id_obra_social == paciente.obrasocial))= obra.nombre_obra_social
               .col-md-6.mb-3
                 label.form-label.fw-bold(for="telefono") Teléfono
-                input.form-control(type="tel", id="telefono", name="telefono", value=paciente.telefono || '', placeholder="Ingrese teléfono")
+                input.form-control(type="tel", id="telefono", name="telefono", value=paciente.telefono || '', placeholder="Ingrese telefono")
+            // fila con direccion (campo editable)
             .row
               .col-12.mb-3
                 label.form-label.fw-bold(for="direccion") Dirección
-                input.form-control(type="text", id="direccion", name="direccion", value=paciente.direccion || '', placeholder="Ingrese dirección")
+                input.form-control(type="text", id="direccion", name="direccion", value=paciente.direccion || '', placeholder="Ingrese direccion")
+            // fila con botones de accion
             .row
               .col-12
+                // contenedor de botones guardar y cancelar
                 .d-flex.gap-2
                   button.btn.btn-primary(type="submit")
                     i.bi.bi-check-circle.me-2

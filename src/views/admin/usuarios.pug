@@ -1,49 +1,58 @@
 extends ../layout
 
 block content
+  // contenedor principal con layout fluido
   .container-fluid.mt-4
     .row
       .col-12
+        // encabezado con titulo y boton nuevo
         .d-flex.justify-content-between.align-items-center.mb-4
           h2.mb-0
             i.bi.bi-people-fill.me-3.text-primary
-            | Gestión de Usuarios
+            | Gestion de Usuarios
           a.btn.btn-primary(href="/admin/usuarios/nuevo")
             i.bi.bi-person-plus.me-2
             | Nuevo Usuario
 
-        // Estadísticas rápidas
+        // tarjetas de estadisticas rapidas
         .row.mb-4
+          // tarjeta total usuarios
           .col-md-3
             .card.bg-primary.text-white
               .card-body.text-center
                 h4.mb-0= usuarios.length
                 small Total Usuarios
+          // tarjeta usuarios activos
           .col-md-3
             .card.bg-success.text-white
               .card-body.text-center
                 h4.mb-0= usuarios.filter(u => u.estado === 'activo').length
                 small Activos
+          // tarjeta usuarios inactivos
           .col-md-3
             .card.bg-warning.text-white
               .card-body.text-center
                 h4.mb-0= usuarios.filter(u => u.estado === 'inactivo').length
                 small Inactivos
+          // tarjeta administradores
           .col-md-3
             .card.bg-info.text-white
               .card-body.text-center
                 h4.mb-0= usuarios.filter(u => u.rol === 'administrador').length
                 small Administradores
 
-        // Tabla de usuarios
+        // contenedor tabla de usuarios
         .card.shadow-sm
+          // encabezado de tabla
           .card-header.bg-light
             h5.mb-0
               i.bi.bi-table.me-2
               | Lista de Usuarios
           .card-body.p-0
+            // tabla responsiva
             .table-responsive
               table.table.table-hover.mb-0
+                // encabezado de columnas
                 thead.bg-primary.text-white
                   tr
                     th.py-3 Usuario
@@ -53,72 +62,100 @@ block content
                     th.py-3 Registro
                     th.py-3.text-center Acciones
                 tbody
+                  // itero sobre cada usuario
                   each usuario in usuarios
+                    // fila usuario
                     tr
+                      // columna con avatar y nombre
                       td
                         .d-flex.align-items-center
+                          // circulo avatar con iniciales
                           .avatar-circle.me-3.bg-primary.text-white.d-flex.align-items-center.justify-content-center.rounded-circle(
                             style="width: 40px; height: 40px; font-weight: bold;"
                           )= usuario.nombre.charAt(0) + usuario.apellido.charAt(0)
                           div
+                            // nombre usuario
                             strong= `${usuario.nombre} ${usuario.apellido}`
                             br
+                            // dni usuario
                             small.text-muted DNI: #{usuario.dni}
+                      // columna contacto
                       td
+                        // email usuario
                         if usuario.email
                           i.bi.bi-envelope.me-1
                           = usuario.email
                           br
+                        // telefono usuario
                         if usuario.telefono
                           i.bi.bi-telephone.me-1
                           = usuario.telefono
                         else
-                          small.text-muted Sin teléfono
+                          small.text-muted Sin telefono
+                      // columna rol con badge
                       td
+                        // determino clase de bootstrap segun rol
                         - var rolClass = usuario.rol === 'administrador' ? 'danger' : usuario.rol === 'medico' ? 'success' : usuario.rol === 'enfermeria' ? 'info' : 'secondary'
+                        // determino icono segun rol
                         - var rolIcon = usuario.rol === 'administrador' ? 'bi-shield-check' : usuario.rol === 'medico' ? 'bi-stethoscope' : usuario.rol === 'enfermeria' ? 'bi-heart-pulse' : 'bi-person-badge'
+                        // badge con rol formateado
                         span.badge(class=`bg-${rolClass}`)
                           i.me-1(class=rolIcon)
                           = usuario.rol.charAt(0).toUpperCase() + usuario.rol.slice(1)
+                      // columna estado
                       td
+                        // badge activo
                         if usuario.estado === 'activo'
                           span.badge.bg-success
                             i.bi.bi-check-circle.me-1
                             | Activo
                         else
+                          // badge inactivo
                           span.badge.bg-secondary
                             i.bi.bi-x-circle.me-1
                             | Inactivo
+                      // columna fecha registro
                       td
                         small= new Date(usuario.created_at).toLocaleDateString('es-ES')
+                      // columna acciones
                       td.text-center
+                        // grupo de botones
                         .btn-group(role="group")
                           if !(usuario.id_usuario === user.id && user.rol === 'administrador')
+                            // boton editar
                             a.btn.btn-sm.btn-outline-primary(href=`/admin/usuarios/${usuario.id_usuario}/editar` title="Editar")
                               i.bi.bi-pencil
                           if usuario.id_usuario !== user.id
+                            // boton toggle estado
                             form.d-inline(method="POST" action=`/admin/usuarios/${usuario.id_usuario}/toggle-estado` id=`form-toggle-${usuario.id_usuario}`)
                               button.btn.btn-sm(type="button" title=usuario.estado === 'activo' ? 'Desactivar' : 'Activar' onclick=`confirmarToggle(${usuario.id_usuario}, '${usuario.estado === 'activo' ? 'desactivar' : 'activar'}')`)
+                                // icono activar/desactivar
                                 if usuario.estado === 'activo'
                                   i.bi.bi-person-x.text-warning
                                 else
                                   i.bi.bi-person-check.text-success
                           if usuario.id_usuario !== user.id
+                            // boton eliminar
                             form.d-inline(method="POST" action=`/admin/usuarios/${usuario.id_usuario}/eliminar` id=`form-delete-${usuario.id_usuario}`)
                               button.btn.btn-sm.btn-outline-danger(type="button" title="Eliminar" onclick=`confirmarEliminar(${usuario.id_usuario})`)
                                 i.bi.bi-trash
 
-  // Modal de confirmación para acciones críticas
+  // contenedor modales toast de confirmacion
 
-  // TOAST - Confirmación Toggle Estado
+  // modal confirmacion toggle estado
   .toast-container.position-fixed.top-50.start-50.translate-middle.p-3(style="z-index: 1060;")
+    // toast confirmacion toggle estado
     #toastConfirmToggle.toast.bg-warning.text-dark(role="alert" aria-live="assertive" aria-atomic="true")
+      // encabezado toast
       .toast-header.bg-warning.text-dark
         i.bi.bi-exclamation-triangle-fill.me-2
-        strong.me-auto Confirmar Acción
+        strong.me-auto Confirmar Accion
         button.btn-close(type="button" data-bs-dismiss="toast" aria-label="Close")
+      // cuerpo toast
       .toast-body.text-center
+        // mensaje toggle
         p.mb-3#toggleMessage
+        // botones confirmacion/cancelacion
         .d-flex.justify-content-center.gap-2
           button.btn.btn-success.btn-sm#btnConfirmToggle(type="button")
             i.bi.bi-check.me-1
@@ -127,15 +164,20 @@ block content
             i.bi.bi-x.me-1
             | Cancelar
 
-  // TOAST - Confirmación Eliminar Usuario
+  // modal confirmacion eliminar usuario
   .toast-container.position-fixed.top-50.start-50.translate-middle.p-3(style="z-index: 1060;")
+    // toast confirmacion eliminar
     #toastConfirmDelete.toast.bg-danger.text-white(role="alert" aria-live="assertive" aria-atomic="true")
+      // encabezado toast
       .toast-header.bg-danger.text-white
         i.bi.bi-exclamation-triangle-fill.me-2
-        strong.me-auto Confirmar Eliminación
+        strong.me-auto Confirmar Eliminacion
         button.btn-close.btn-close-white(type="button" data-bs-dismiss="toast" aria-label="Close")
+      // cuerpo toast
       .toast-body.text-center
+        // mensaje eliminar
         p.mb-3#deleteMessage
+        // botones confirmacion/cancelacion
         .d-flex.justify-content-center.gap-2
           button.btn.btn-light.btn-sm#btnConfirmDelete(type="button")
             i.bi.bi-trash.me-1
@@ -145,31 +187,36 @@ block content
             | Cancelar
 
   script.
+    // script funciones confirmacion
+    // variable usuario actual
     let currentUserId = null;
+    // variable accion actual
     let currentAction = null;
 
-    // Función para confirmar toggle de estado
+    // funcion confirmar toggle estado
     function confirmarToggle(userId, action) {
       currentUserId = userId;
       currentAction = action;
       
+      // defino mensaje segun accion
       const message = action === 'desactivar' 
-        ? '¿Está seguro de que desea desactivar este usuario?' 
-        : '¿Está seguro de que desea activar este usuario?';
+        ? '¿Esta seguro de que desea desactivar este usuario?' 
+        : '¿Esta seguro de que desea activar este usuario?';
       
       document.getElementById('toggleMessage').textContent = message;
       
+      // muestro toast de confirmacion
       const toast = new bootstrap.Toast(document.getElementById('toastConfirmToggle'), {
         autohide: false
       });
       toast.show();
     }
 
-    // Función para confirmar eliminación
+    // funcion confirmar eliminacion
     function confirmarEliminar(userId) {
       currentUserId = userId;
       
-      document.getElementById('deleteMessage').textContent = '¿Está seguro de que desea eliminar permanentemente este usuario? Esta acción no se puede deshacer.';
+      document.getElementById('deleteMessage').textContent = '¿Esta seguro de que desea eliminar permanentemente este usuario? Esta accion no se puede deshacer.';
       
       const toast = new bootstrap.Toast(document.getElementById('toastConfirmDelete'), {
         autohide: false
@@ -177,22 +224,23 @@ block content
       toast.show();
     }
 
-    // Event listeners para los botones de confirmación
+    // evento boton confirmar toggle
     document.getElementById('btnConfirmToggle').addEventListener('click', function() {
       if (currentUserId) {
         document.getElementById(`form-toggle-${currentUserId}`).submit();
       }
     });
 
+    // evento boton confirmar eliminar
     document.getElementById('btnConfirmDelete').addEventListener('click', function() {
       if (currentUserId) {
         document.getElementById(`form-delete-${currentUserId}`).submit();
       }
     });
 
-    // Mejorar la experiencia de los botones
+    // evento cargar documento
     document.addEventListener('DOMContentLoaded', function() {
-      // Agregar tooltips a los botones
+      // cargo tooltips en documento
       const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
       tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);

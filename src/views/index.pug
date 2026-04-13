@@ -1,14 +1,14 @@
 extends layout
 
 block content
-  // --- Breadcrumb ---
+  // --- navegacion migajas de pan ---
   .row.mb-4
     .col-12
       nav(aria-label="breadcrumb")
         ol.breadcrumb
           
   
-  // --- Tarjetas Principales ---
+  // --- tarjetas principales ---
   .row.mt-4
     .col-md-6
       .card.border-0.shadow-lg.h-100
@@ -56,7 +56,7 @@ block content
             i.bi.bi-people-fill.me-2
             | Ver Todos los Pacientes
 
-  // --- Sección Informativa (Tus tarjetas de KPI) ---
+  // seccion indicadores principales
   .row.mt-5
     .col-md-4
       .card.text-center.border-0.bg-white.p-3.mb-3.shadow-sm
@@ -78,7 +78,7 @@ block content
         h6.mt-2 Atendidos Hoy
         h3= atendidosHoy || 0
 
-  // TOAST
+  // notificacion emergente
   if pacienteNoEncontrado
     .toast-container.position-fixed.bottom-0.end-0.p-3
       #liveToast.toast.show.bg-warning.text-dark(role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false")
@@ -107,7 +107,7 @@ block content
         if (timerElement) timerElement.textContent = countdown;
         if (countdown <= 0) {
           clearInterval(interval);
-          // Redirección automática tras 5 segundos 
+          // redireccion automatica tras 5 segundos
           window.location.href = "/registro-paciente/" + dni;
         }
       }, 1000);

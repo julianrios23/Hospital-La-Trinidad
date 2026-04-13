@@ -1,17 +1,21 @@
 extends ../layout
 
 block content
+  // contenedor principal centrado
   .container.mt-5
     .row.justify-content-center
       .col-md-8
+        // tarjeta principal
         .card.shadow-lg
+          // encabezado con titulo
           .card-header.bg-primary.text-white
             h4.mb-0
               i.bi.bi-person-plus.me-3
               | Crear Nuevo Usuario
 
+          // cuerpo formulario
           .card-body.p-4
-            // Mensaje de error
+            // validacion mensaje error
             if error
               .alert.alert-danger.alert-dismissible.fade.show
                 i.bi.bi-exclamation-triangle.me-2
@@ -19,13 +23,16 @@ block content
                 | #{error}
                 button.btn-close(type="button" data-bs-dismiss="alert")
 
+            // formulario creacion usuario
             form(method="POST" action="/admin/usuarios/crear" id="crearUsuarioForm")
+              // filas campos
               .row.g-3
-                // Rol
+                // campo rol
                 .col-md-6
                   label.form-label.fw-bold(for="rol")
                     i.bi.bi-shield.me-2
                     | Rol *
+                  // selector roles
                   select#rol.form-select(name="rol" required)
                     option(value="" disabled selected) Seleccione un rol...
                     
@@ -34,7 +41,7 @@ block content
                     option(value="admision_guardia") 📋 Admisión Guardia
                     option(value="admision_internacion") 🏥 Admisión Internación
 
-                // Nombre
+                // campo nombre
                 .col-md-6
                   label.form-label.fw-bold(for="nombre")
                     i.bi.bi-person.me-2
@@ -48,7 +55,7 @@ block content
                     title="Solo letras y espacios"
                   )
 
-                // Apellido
+                // campo apellido
                 .col-md-6
                   label.form-label.fw-bold(for="apellido")
                     i.bi.bi-person.me-2

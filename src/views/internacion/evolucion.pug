@@ -1,88 +1,127 @@
 extends ../layout
 
 block content
+  // contenedor principal
   .container.mt-4
     .row
-      //- Cabecera con datos del Paciente Internado
+      // cabecera con datos del paciente internado
       .col-12.mb-4
+        // tarjeta de datos del paciente
         .card.bg-light
           .card-body.d-flex.justify-content-between.align-items-center
+            // seccion izquierda: datos personales
             div
+              // nombre del paciente
               h3= internacion.paciente.apellido + ', ' + internacion.paciente.nombre
+              // ubicacion del paciente
               p.text-muted Ala: #{internacion.nombre_ala} | Hab: #{internacion.numero_hab} | Cama: #{internacion.nombre_cama}
+              // badge de estado de alta
               if internacion.autorizado_alta_medica
-                span.badge.bg-success Alta Médica Autorizada
+                span.badge.bg-success Alta Medica Autorizada
             
+            // seccion derecha: botones de accion
             div
+              // boton para autorizar alta (solo medicos)
               if !internacion.autorizado_alta_medica && user && user.rol === 'medico'
                 button.btn.btn-warning(onclick="showConfirmAltaModal()") 
                   i.bi.bi-check2-circle
-                  |  Autorizar Alta Médica
+                  |  Autorizar Alta Medica
+              // boton para finalizar internacion (solo admision)
               if internacion.autorizado_alta_medica && user && user.rol === 'admision_internacion'
                 button.btn.btn-danger(type="button" onclick="showConfirmFinalizarModal()")
                   i.bi.bi-box-arrow-right
                   |  Finalizar y Liberar Cama
 
-      //- Historial de Evoluciones
+      // columna izquierda con historial
       .col-md-7
+        // titulo del historial
         h5 Historial de Seguimiento
+        // itero sobre evoluciones
         each evo in evoluciones
+          // tarjeta de evolucion
           .card.mb-3.border-start.border-info.border-4
+            // cuerpo de tarjeta
             .card-body
+              // fecha y medico
               .d-flex.justify-content-between.align-items-center.mb-2
+                // fecha de evolucion
                 h6.card-title.text-primary.mb-0= evo.fecha_formateada
+                // nombre del medico
                 small.text-muted
                   i.bi.bi-person-badge
                   |  #{evo.medico_nombre}
+              // texto de evolucion
               p.card-text= evo.evolucion_clinica
+              // separador
               hr
+              // tratamiento actual
               small.text-muted Tratamiento: #{evo.tratamiento_actual}
 
-      //- Formulario para Nueva Evolución (Solo si no tiene alta y el usuario es médico)
+      // columna derecha con formulario
       .col-md-5
+        // formulario solo si no tiene alta y es medico
         if !internacion.autorizado_alta_medica && user && user.rol === 'medico'
+          // tarjeta con formulario
           .card.shadow-sm
+            // encabezado del formulario
             .card-header.bg-info.text-white Nueva Entrada de Piso
+            // cuerpo del formulario
             .card-body
+              // formulario que envia datos
               form(action=`/internacion/evolucion/${internacion.id_internacion}` method="POST")
+                // campo evolucion clinica
                 .mb-3
-                  label.form-label Evolución Clínica
+                  label.form-label Evolucion Clinica
                   textarea.form-control(name="evolucion" rows="4" required)
+                // campo tratamiento
                 .mb-3
-                  label.form-label Tratamiento / Medicación
+                  label.form-label Tratamiento / Medicacion
                   textarea.form-control(name="tratamiento" rows="3")
-                button.btn.btn-info.w-100(type="submit") Guardar Evolución
+                // boton guardar
+                button.btn.btn-info.w-100(type="submit") Guardar Evolucion
 
+  // contenedor de alertas emergentes
   #bootstrapAlertWrapper.position-fixed.top-50.start-50.translate-middle.p-3(style="z-index: 1080; display: none; min-width: 280px; max-width: 420px; width: 90%;")
+    // alerta personalizada
     .alert.alert-success.alert-dismissible.fade.show.text-center(role="alert" id="bootstrapAlert")
       span#bootstrapAlertText
       button.btn-close(type="button" aria-label="Close" onclick="hideBootstrapAlert()")
 
+  // modal de confirmacion para autorizar alta
   #confirmAltaModal.modal.fade(tabindex="-1" aria-labelledby="confirmAltaModalLabel" aria-hidden="true")
     .modal-dialog.modal-dialog-centered
       .modal-content
+        // encabezado del modal
         .modal-header
-          h5.modal-title#confirmAltaModalLabel Autorizar Alta Médica
+          h5.modal-title#confirmAltaModalLabel Autorizar Alta Medica
           button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+        // cuerpo del modal
         .modal-body
-          p ¿Confirmar autorización de alta médica?
+          p Confirmar autorizacion de alta medica?
+        // pie del modal
         .modal-footer
           button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
           button.btn.btn-warning(type="button" id="confirmAltaButton") Confirmar
 
+  // modal de confirmacion para finalizar internacion
   #confirmFinalizarModal.modal.fade(tabindex="-1" aria-labelledby="confirmFinalizarModalLabel" aria-hidden="true")
     .modal-dialog.modal-dialog-centered
       .modal-content
+        // encabezado del modal
         .modal-header
-          h5.modal-title#confirmFinalizarModalLabel Finalizar Internación
+          h5.modal-title#confirmFinalizarModalLabel Finalizar Internacion
           button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+        // cuerpo del modal
         .modal-body
-          p ¿Confirma que el paciente se retira y se libera la cama?
+          p Confirma que el paciente se retira y se libera la cama?
+        // pie del modal
         .modal-footer
           button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
           button.btn.btn-danger(type="button" id="confirmFinalizarButton") Confirmar
 
+  // script para manejar modales y alertas
   script.
+    // funcion para mostrar alerta
     function showBootstrapAlert(message, type = 'success') {
       const wrapper = document.getElementById('bootstrapAlertWrapper');
       const alert = document.getElementById('bootstrapAlert');
@@ -93,6 +132,7 @@ block content
       wrapper.style.display = 'block';
     }
 
+    // funcion para ocultar alerta
     function hideBootstrapAlert() {
       const wrapper = document.getElementById('bootstrapAlertWrapper');
       if (wrapper) {
@@ -100,29 +140,37 @@ block content
       }
     }
 
+    // referencias globales de modales
     let confirmAltaModal, confirmFinalizarModal;
 
+    // funcion para mostrar modal de alta
     function showConfirmAltaModal() {
       if (confirmAltaModal) {
         confirmAltaModal.show();
       }
     }
 
+    // funcion para mostrar modal de finalizacion
     function showConfirmFinalizarModal() {
       if (confirmFinalizarModal) {
         confirmFinalizarModal.show();
       }
     }
 
+    // evento cuando carga el dom
     document.addEventListener('DOMContentLoaded', function() {
+      // inicializo modales
       confirmAltaModal = new bootstrap.Modal(document.getElementById('confirmAltaModal'));
       confirmFinalizarModal = new bootstrap.Modal(document.getElementById('confirmFinalizarModal'));
 
+      // obtengo referencias a botones
       const confirmAltaButton = document.getElementById('confirmAltaButton');
       const confirmFinalizarButton = document.getElementById('confirmFinalizarButton');
 
+      // evento click boton confirmar alta
       if (confirmAltaButton) {
         confirmAltaButton.addEventListener('click', function() {
+          // hago request para autorizar alta
           fetch(`/internacion/autorizar-alta/${#{internacion.id_internacion}}`, {
             method: 'POST',
             headers: {
@@ -131,33 +179,41 @@ block content
           })
           .then(response => {
             if (response.ok) {
+              // oculto modal y muestro exito
               confirmAltaModal.hide();
-              showBootstrapAlert('Alta médica autorizada exitosamente', 'success');
+              showBootstrapAlert('Alta medica autorizada exitosamente', 'success');
+              // recargo pagina despues de 1.4 segundos
               setTimeout(() => location.reload(), 1400);
             } else {
+              // muestro error
               confirmAltaModal.hide();
-              showBootstrapAlert('Error al autorizar el alta médica', 'danger');
+              showBootstrapAlert('Error al autorizar el alta medica', 'danger');
             }
           })
           .catch(error => {
             console.error('Error:', error);
+            // muestro error de conexion
             confirmAltaModal.hide();
-            showBootstrapAlert('Error al autorizar el alta médica', 'danger');
+            showBootstrapAlert('Error al autorizar el alta medica', 'danger');
           });
         });
       }
 
+      // evento click boton confirmar finalizacion
       if (confirmFinalizarButton) {
         confirmFinalizarButton.addEventListener('click', function() {
+          // creo formulario para enviar datos
           const form = document.createElement('form');
           form.method = 'POST';
           form.action = '/internacion/finalizar';
 
+          // agrego id de internacion
           const inputInternacion = document.createElement('input');
           inputInternacion.type = 'hidden';
           inputInternacion.name = 'idInternacion';
           inputInternacion.value = #{internacion.id_internacion};
 
+          // agrego id de cama
           const inputCama = document.createElement('input');
           inputCama.type = 'hidden';
           inputCama.name = 'idCama';
@@ -166,6 +222,7 @@ block content
           form.appendChild(inputInternacion);
           form.appendChild(inputCama);
           document.body.appendChild(form);
+          // oculto modal y envio formulario
           confirmFinalizarModal.hide();
           form.submit();
         });

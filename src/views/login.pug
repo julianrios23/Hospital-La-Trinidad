@@ -1,11 +1,11 @@
 extends layout
 
 block content
-  // --- Contenedor de Login Centrado ---
+  // --- contenedor de login centrado ---
   .row.justify-content-center.align-items-center(style="min-height: 70vh;")
     .col-md-6.col-lg-5
      
-      // Formulario de Login
+      // marco principal del formulario de acceso
       .card.border-0.shadow-lg
         .card-header.bg-primary.py-4
           h5.card-title.mb-0.text-white.text-center
@@ -16,7 +16,7 @@ block content
           
 
           form(action="/login", method="POST", id="loginForm")
-            // Campo Usuario/Email
+            // campo usuario/email
             .mb-4
               label.form-label.fw-bold.text-dark(for="usuario") 
                 i.bi.bi-person.me-2
@@ -32,7 +32,7 @@ block content
                   autofocus
                 )
 
-            // Campo Contraseña
+            // campo contrasena
             .mb-4
               label.form-label.fw-bold.text-dark(for="password")
                 i.bi.bi-key.me-2
@@ -47,19 +47,19 @@ block content
                   required
                 )
 
-            // Checkbox Recordar
+            // opcion recordar credenciales
             .form-check.mb-4
               input.form-check-input#recordar(type="checkbox", name="recordar")
               label.form-check-label.text-muted(for="recordar")
                 | Recordar mis credenciales
 
-            // Botón Login
+            // boton enviar formulario
             .d-grid.gap-2.mb-3
               button.btn.btn-primary.btn-lg.fw-bold(type="submit")
                 i.bi.bi-arrow-right-circle.me-2
                 | Ingresar al Sistema
 
-            // Link recuperar contraseña
+            // enlace para recuperar contraseña
             .text-center
               small.text-muted
                 a.text-decoration-none.text-primary(href="#" id="forgotPasswordLink") 
@@ -72,7 +72,7 @@ block content
             br
             | Diseñado por Julian Rios © 2026
 
-  // TOAST - Error de Login
+  // toast error de login
   if error
     .toast-container.position-fixed.bottom-0.end-0.p-3
       #toastError.toast.show.bg-danger.text-white(role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false")
@@ -87,7 +87,7 @@ block content
               i.bi.bi-x-circle.me-1
               | #{error}
 
-  // TOAST - Olvidó contraseña
+  // toast de olvido de contraseña
   .toast-container.position-fixed.bottom-0.end-0.p-3
     #toastForgotPassword.toast.bg-info.text-white(role="alert" aria-live="assertive" aria-atomic="true")
       .toast-header.bg-info.text-white
@@ -114,13 +114,13 @@ block content
         else
           p.mb-0.text-warning
             i.bi.bi-exclamation-triangle.me-1
-            | No se pudo obtener la información del administrador
+            | No se pudo obtener la informacion del administrador
 
   script.
-    // Auto-focus al campo de usuario
+    // activo el foco en el campo usuario
     document.getElementById('usuario').focus();
 
-    // Validación de formulario
+    // valido los campos antes de enviar
     document.getElementById('loginForm').addEventListener('submit', function(e) {
       const usuario = document.getElementById('usuario').value.trim();
       const password = document.getElementById('password').value;
@@ -138,11 +138,11 @@ block content
       }
     });
 
-    // Manejar clic en "Olvidó su contraseña"
+    // capturo clic en el enlace de recuperar contraseña
     document.getElementById('forgotPasswordLink').addEventListener('click', function(e) {
       e.preventDefault();
       
-      // Mostrar toast con configuración personalizada (10 segundos)
+      // muestro el toast con retardo personalizado
       const toastElement = document.getElementById('toastForgotPassword');
       const toast = new bootstrap.Toast(toastElement, {
         autohide: true,

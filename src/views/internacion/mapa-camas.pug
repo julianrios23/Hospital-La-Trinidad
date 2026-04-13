@@ -1,66 +1,91 @@
 extends ../layout
 
 block content
+  // contenedor principal
   .container.mt-4
-    h2.text-center.mb-4 🏥 Mapa de Gestión de Camas
+    // titulo de la pagina
+    h2.text-center.mb-4 Mapa de Gestion de Camas
 
+    // determino el rol del usuario
     - var isMedico = user && user.rol === 'medico'
     - var isAdmision = user && user.rol === 'admision_internacion'
 
+    // alerta si hay paciente seleccionado
     if isAdmision && selectedPatient
       .alert.alert-info.d-flex.justify-content-between.align-items-center
         .me-3
           strong Paciente seleccionado:
           |  #{selectedPatient.nombre} #{selectedPatient.apellido} (#{selectedPatient.dni}) - #{selectedPatient.diagnostico_guardia}
         a.btn.btn-sm.btn-secondary(href="/internacion/pacientes-espera") Cambiar paciente
+    // alerta para seleccionar paciente
     else if isAdmision
       .alert.alert-warning
         | Selecciona un paciente de la lista de espera para poder asignar una cama.
+    // alerta para medicos
     else if isMedico
       .alert.alert-info
-        | Como médico, puedes hacer click en las camas ocupadas para ver la evolución de los pacientes internados.
+        | Como medico, puedes hacer click en las camas ocupadas para ver la evolucion de los pacientes internados.
 
+    // alerta si no hay camas configuradas
     if !tieneCamas
       .alert.alert-warning.mt-3
-        strong Atención:
+        strong Atencion:
         |  No hay camas definidas en el sistema. Crea registros en la tabla `camas` para poder asignar.
 
+  // contenedor de alertas emergentes personalizado
   #bootstrapAlertWrapper.position-fixed.top-50.start-50.translate-middle.p-3(style="z-index: 1080; display: none; min-width: 280px; max-width: 420px; width: 90%;")
+    // alerta personalizada
     .alert.alert-danger.alert-dismissible.fade.show.text-center(role="alert" id="bootstrapAlert")
       span#bootstrapAlertText
       button.btn-close(type="button" aria-label="Close" onclick="hideBootstrapAlert()")
 
+  // modal para confirmar asignacion de cama
   #confirmAssignModal.modal.fade(tabindex="-1" aria-labelledby="confirmAssignModalLabel" aria-hidden="true")
     .modal-dialog.modal-dialog-centered
       .modal-content
+        // encabezado del modal
         .modal-header
-          h5.modal-title#confirmAssignModalLabel Confirmar internación
+          h5.modal-title#confirmAssignModalLabel Confirmar internacion
           button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+        // cuerpo del modal
         .modal-body
           p#confirmAssignModalText
+        // pie del modal
         .modal-footer
           button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
           button.btn.btn-primary(type="button" id="confirmAssignButton") Confirmar
 
-  //- Renderizado de Alas
+  //- renderizado de alas del hospital
   each ala in alas
+    // contenedor de ala
     .ala-container(id=`ala-${ala.nombre_ala.replace(' ', '')}`)
+      // titulo del ala
       h3.border-bottom.pb-2.mb-3= ala.nombre_ala
+      // grid de habitaciones
       .row.row-cols-1.row-cols-md-5.g-4.mb-5
+        // itero sobre habitaciones del ala
         each habitacion in ala.habitaciones
+          // columna con tarjeta de habitacion
           .col
+            // tarjeta de habitacion
             .card.h-100.shadow-sm
+              // encabezado con numero de habitacion
               .card-header.bg-dark.text-white.text-center
                 | Hab. #{habitacion.numero}
+              // cuerpo con camas
               .card-body.p-2
+                // grid de camas en la habitacion
                 .row
+                  // itero sobre camas de la habitacion
                   each cama in habitacion.camas
+                    // columna con boton de cama
                     .col-6.text-center
-                      //- Lógica de colores: Verde sólido libre, Naranja sólido ocupada
+                      //- logica de colores: verde libre, naranja ocupada
                       - var btnClass = cama.estado_cama === 'Libre' ? (isMedico ? 'btn-secondary' : 'btn-success') : 'btn-warning'
                       - var btnStyle = cama.estado_cama === 'Libre' ? (isMedico ? '' : 'background-color: #006400 !important; border-color: #006400 !important;') : ''
                       - var btnDisabled = isMedico && cama.estado_cama === 'Libre'
                       - var btnTitle = cama.estado_cama === 'Ocupada' ? 'Ver Paciente' : (isMedico ? 'Solo ver evoluciones' : 'Asignar Cama')
+                      // boton para gestionar cama
                       button.btn.btn-sm.w-100.mb-1(type='button'
                         class=btnClass + ' gestionar-cama'
                         style=btnStyle
@@ -77,7 +102,9 @@ block content
                           br
                           small.text-white= cama.paciente_nombre
 
+    // script para manejar camas y modal
     script.
+      // funciones para mostrar y ocultar alertas personalizadas
       function showBootstrapAlert(message, type = 'danger') {
         const wrapper = document.getElementById('bootstrapAlertWrapper');
         const alert = document.getElementById('bootstrapAlert');
@@ -89,6 +116,7 @@ block content
         wrapper.style.display = 'block';
       }
 
+      // funcion para ocultar alerta
       function hideBootstrapAlert() {
         const wrapper = document.getElementById('bootstrapAlertWrapper');
         if (wrapper) {
@@ -96,32 +124,40 @@ block content
         }
       }
 
+      // log para debug de id de admision pendiente
       console.log('Script cargado, idAdmisionPendiente:', !{JSON.stringify(idAdmisionPendiente || null)});
+      // evento cuando carga el dom
       document.addEventListener('DOMContentLoaded', function() {
         console.log('DOMContentLoaded fired');
+        // obtengo datos del usuario y admision
         const idAdmision = !{JSON.stringify(idAdmisionPendiente || null)};
         const userRol = !{JSON.stringify(user ? user.rol : null)};
         const isMedico = userRol === 'medico';
         let pendingAssignment = null;
         console.log('idAdmision:', idAdmision, 'userRol:', userRol, 'isMedico:', isMedico);
 
+        // obtengo referencias al modal
         const confirmAssignModalElement = document.getElementById('confirmAssignModal');
         const confirmAssignModal = confirmAssignModalElement ? new bootstrap.Modal(confirmAssignModalElement) : null;
         const confirmAssignButton = document.getElementById('confirmAssignButton');
 
+        // manejador del boton confirmar en modal
         if (confirmAssignButton) {
           confirmAssignButton.addEventListener('click', function() {
             if (!pendingAssignment) return;
 
+            // creo formulario para enviar datos
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '/internacion/asignar-cama';
 
+            // agrego id de admision
             const inputAdmision = document.createElement('input');
             inputAdmision.type = 'hidden';
             inputAdmision.name = 'idAdmision';
             inputAdmision.value = pendingAssignment.idAdmision;
 
+            // agrego id de cama
             const inputCama = document.createElement('input');
             inputCama.type = 'hidden';
             inputCama.name = 'idCama';
@@ -133,48 +169,55 @@ block content
             if (confirmAssignModal) {
               confirmAssignModal.hide();
             }
+            // envio el formulario
             form.submit();
           });
         }
 
+        // obtengo todos los botones de cama
         const botones = document.querySelectorAll('.gestionar-cama');
         console.log('Botones encontrados:', botones.length);
 
+        // configuro evento click para cada boton
         botones.forEach(btn => {
-          console.log('Configurando botón:', btn.dataset.camaId, btn.dataset.camaEstado, btn.disabled);
+          console.log('Configurando boton:', btn.dataset.camaId, btn.dataset.camaEstado, btn.disabled);
           btn.addEventListener('click', function() {
-            console.log('Botón clickeado:', this.dataset.camaId, this.dataset.camaEstado);
+            console.log('Boton clickeado:', this.dataset.camaId, this.dataset.camaEstado);
             const idCama = this.dataset.camaId;
             const estado = this.dataset.camaEstado;
 
+            // valido que la cama tenga id
             if (!idCama || idCama === 'null') {
-              showBootstrapAlert('Esta cama no está configurada en el sistema. Contacte al administrador.', 'danger');
+              showBootstrapAlert('Esta cama no esta configurada en el sistema. Contacte al administrador.', 'danger');
               return;
             }
 
+            // si cama esta libre
             if (estado === 'Libre') {
-              // Solo permitir asignación si NO es médico
+              // solo permitir asignacion si NO es medico
               if (isMedico) {
-                showBootstrapAlert('Como médico, solo puedes ver evoluciones de pacientes internados.', 'warning');
+                showBootstrapAlert('Como medico, solo puedes ver evoluciones de pacientes internados.', 'warning');
                 return;
               }
 
+              // valido que haya paciente seleccionado
               if (!idAdmision) {
                 showBootstrapAlert('Primero selecciona un paciente de la lista de espera.', 'warning');
                 window.location.href = '/internacion/pacientes-espera';
                 return;
               }
 
+              // muestro modal de confirmacion
               pendingAssignment = { idAdmision, idCama };
-              document.getElementById('confirmAssignModalText').textContent = '¿Confirmar internación en esta cama?';
+              document.getElementById('confirmAssignModalText').textContent = 'Confirmar internacion en esta cama?';
               confirmAssignModal.show();
             } else {
-              // Cama ocupada - redirigir a evolución (todos los roles pueden ver evoluciones)
+              // cama ocupada - redirigir a evolucion (todos pueden ver)
               const idInternacion = this.dataset.internacionId;
               if (idInternacion) {
                 window.location.href = `/internacion/evolucion/${idInternacion}`;
               } else {
-                showBootstrapAlert('No se pudo encontrar la internación para esta cama.', 'danger');
+                showBootstrapAlert('No se pudo encontrar la internacion para esta cama.', 'danger');
               }
             }
           });

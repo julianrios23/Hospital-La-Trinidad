@@ -2,63 +2,86 @@ extends ../layout
     
 
 block content
+  // titulo de la pagina
   h4.mb-4 
     i.bi.bi-stethoscope.text-primary.me-2
     | Consultorio de Guardia
 
+  // contenedor principal
   .row
     .col-12
+      // tarjeta con tabla de pacientes
       .card.border-0.shadow-sm.mb-4
+        // encabezado de la tarjeta
         .card-header.bg-white.fw-bold Lista de Pacientes por Prioridad
+        // tabla responsiva
         .table-responsive
           table.table.table-hover.align-middle
+            // encabezados de tabla
             thead.table-light
               tr
                 th Prioridad
                 th Paciente
                 th Espera
                 th Signos Vitales (Triage)
-                th Acción
+                th Accion
+            // filas con datos de pacientes
             tbody
               each p in pacientesMed
                 tr
                   td
+                    // insignia con nivel de prioridad
                     span.badge(class=`bg-${p.prioridad == 1 ? 'danger' : p.prioridad == 2 ? 'warning' : 'info'}`) 
                       | Nivel #{p.prioridad}
                   td.fw-bold= `${p.apellido}, ${p.nombre}`
                   td
+                    // calculo de tiempo en horas y minutos
                     - const horas = Math.floor(p.tiempo_espera_minutos / 60)
                     - const minutos = p.tiempo_espera_minutos % 60
+                    // muestra tiempo en formato legible
                     = `${horas}h ${minutos}m`
                   td
+                    // datos de signos vitales
                     small.text-muted 
                       | TA: #{p.presion} | Temp: #{p.temperatura}° | FC: #{p.frecuencia_cardiaca} | Sat: #{p.saturacion_oxigeno}%
                   td
+                    // boton para atender al paciente
                     a.btn.btn-outline-primary.btn-sm(href=`/atender/${p.id_admision}`) Atender
 
+  // seccion de consulta activa (cuando se atiende un paciente)
   if consultaActiva
+    // tarjeta con formulario de diagnostico
     .card.border-primary.shadow-lg
+      // cuerpo del formulario
       .card-body
-        h5.text-primary Diagnóstico y Tratamiento: #{consultaActiva.paciente}
+        // titulo con nombre del paciente
+        h5.text-primary Diagnostico y Tratamiento: #{consultaActiva.paciente}
+        // formulario que envia datos
         form(action="/finalizar-atencion", method="POST")
+          // id de la admision
           input(type="hidden", name="id_admision", value=consultaActiva.id_admision)
           
+          // campo para diagnostico
           .mb-3
-            label.form-label Evolución y Diagnóstico
+            label.form-label Evolucion y Diagnostico
             textarea.form-control(name="diagnostico", rows="4", required)
           
+          // fila con medicacion e indicaciones
           .row
             .col-md-6.mb-3
-              label.form-label Medicación Suministrada / Recetada
+              label.form-label Medicacion Suministrada / Recetada
               textarea.form-control(name="medicacion", rows="3")
             .col-md-6.mb-3
               label.form-label Indicaciones al Alta
               textarea.form-control(name="indicaciones", rows="3")
           
+          // checkbox para solicitar internacion
           .form-check.form-switch.mb-4
             input.form-check-input#internacion(type="checkbox", name="internacion")
-            label.form-check-label.fw-bold.text-danger(for="internacion") Solicitar Internación (v2.0)
+            label.form-check-label.fw-bold.text-danger(for="internacion") Solicitar Internacion (v2.0)
 
+          // botones de accion
           .d-flex.justify-content-between
             //button.btn.btn-secondary(type="button") Guardar Borrador
-            button.btn.btn-primary.btn-lg.px-5(type="submit") Finalizar Atención y Dar Alta
+            // boton para finalizar atencion y dar alta
+            button.btn.btn-primary.btn-lg.px-5(type="submit") Finalizar Atencion y Dar Alta
