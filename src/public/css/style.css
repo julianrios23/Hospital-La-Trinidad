@@ -91,3 +91,60 @@
   background-color: #6c757d !important; /* Gris - Sin asignar */
 }
 
+/* Efecto strobo para cama lista para desocupar */
+.cama-strobo {
+  position: relative;
+  overflow: hidden;
+  animation: cama-strobo-background 1.8s ease-in-out infinite;
+}
+
+.cama-strobo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 0.375rem;
+  border: 3px solid rgba(255, 0, 0, 0.85);
+  opacity: 0;
+  animation: cama-strobo-glow 1.3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.cama-strobo {
+  box-shadow: 0 0 0 rgba(255, 0, 0, 0);
+}
+
+@keyframes cama-strobo-glow {
+  0%, 100% {
+    opacity: 0;
+    box-shadow: 0 0 0 rgba(255, 0, 0, 0);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+  }
+}
+
+@keyframes cama-strobo-background {
+  0%, 100% {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+  }
+  50% {
+    background-color: rgba(255, 240, 240, 0.95) !important;
+  }
+}
+
+.cama-strobo i {
+  animation: cama-strobo-icon 1.3s ease-in-out infinite;
+}
+
+@keyframes cama-strobo-icon {
+  0%, 100% {
+    color: #dc3545;
+    text-shadow: 0 0 0 rgba(255, 0, 0, 0);
+  }
+  50% {
+    color: #900;
+    text-shadow: 0 0 8px rgba(255, 0, 0, 0.85);
+  }
+}
+

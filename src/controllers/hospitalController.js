@@ -1,5 +1,8 @@
 const db = require('../../config/db');
 const bcrypt = require('bcrypt');
+const usuarioModel = require('../models/usuarioModel');
+const pacienteModel = require('../models/pacienteModel');
+const { hashPassword } = require('../helpers/passwordHelper');
 
 // --- REGLAS DE VALIDACIÓN (Regex para Backend) ---
 const regexLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
@@ -373,20 +376,18 @@ const hospitalController = {
     buscarPaciente: async (req, res) => {
         const { dni } = req.body;
         try {
-            const [pacientes] = await db.query('SELECT * FROM pacientes WHERE dni = ?', [dni]);
-            const [obrasSociales] = await db.query('SELECT * FROM obras_sociales ORDER BY nombre_obra_social ASC');
+            const pacientes = await pacienteModel.findByDni(dni);
+            const obrasSociales = await pacienteModel.getObrasSociales();
             const pacientesEnEspera = await getPacientesEnEspera();
 
             if (pacientes.length > 0) {
-                // PACIENTE EXISTE: Redirigir a confirmación de datos
-                res.render('utiles/admitir-existente', { 
-                    paciente: pacientes[0], 
-                    obrasSociales 
+                res.render('utiles/admitir-existente', {
+                    paciente: pacientes[0],
+                    obrasSociales
                 });
             } else {
-                // PACIENTE NUEVO: Activar Toast en el index
-                res.render('index', { 
-                    pacienteNoEncontrado: true, 
+                res.render('index', {
+                    pacienteNoEncontrado: true,
                     dniBuscado: dni,
                     pacientesEnEspera: pacientesEnEspera
                 });
@@ -401,7 +402,7 @@ const hospitalController = {
     renderRegistroDni: async (req, res) => {
         const { dni } = req.params;
         try {
-            const [obrasSociales] = await db.query('SELECT * FROM obras_sociales ORDER BY nombre_obra_social ASC');
+            const obrasSociales = await pacienteModel.getObrasSociales();
             res.render('pacientes/registro-paciente', { dni, obrasSociales });
         } catch (error) {
             res.render('utiles/error', { mensaje: 'Error al cargar el formulario de registro.' });
@@ -411,41 +412,40 @@ const hospitalController = {
     // 3. Guardar Nuevo Paciente y Crear Admisión (Flujo corregido)
     guardarNuevoPaciente: async (req, res) => {
         const { dni, nombre, apellido, fecha_nacimiento, genero, telefono, direccion, obra_social_id, motivo_consulta } = req.body;
-        
-        // Validación de Backend antes de procesar
+
         if (!regexLetras.test(nombre) || !regexLetras.test(apellido)) {
             return res.render('utiles/error', { mensaje: 'Nombre y Apellido deben contener solo letras.' });
         }
 
-        // Manejo de Nulos: Si no se selecciona obra social, asignamos ID 1 ("No posee") 
-        const idOS = obra_social_id || 1; 
+        const idOS = obra_social_id || 1;
 
         try {
-            // Paso 1: Insertar en la tabla pacientes
-            const [resPaciente] = await db.query(
-                `INSERT INTO pacientes (dni, nombre, apellido, fecha_nacimiento, genero, telefono, direccion, obrasocial) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-                [dni, nombre, apellido, fecha_nacimiento, genero, telefono, direccion, idOS]
-            );
-            
+            const [resPaciente] = await pacienteModel.insertPaciente({
+                dni,
+                nombre,
+                apellido,
+                fecha_nacimiento,
+                genero,
+                telefono,
+                direccion,
+                obrasocial: idOS
+            });
+
             const nuevoPacienteId = resPaciente.insertId;
 
-            // Paso 2: Insertar en la tabla admisiones [cite: 528]
-            const [resAdmision] = await db.query(
-                `INSERT INTO admisiones (paciente_id, obra_social_id, motivo_consulta, estado_admision) 
-                 VALUES (?, ?, ?, 'Ventanilla')`,
-                [nuevoPacienteId, idOS, motivo_consulta]
-            );
+            const [resAdmision] = await pacienteModel.createAdmision({
+                paciente_id: nuevoPacienteId,
+                obra_social_id: idOS,
+                motivo_consulta
+            });
 
-            // Paso 3: Renderizado con ruta sincronizada a subcarpeta 'utiles' 
-            res.render('utiles/confirmacion', { 
+            res.render('utiles/confirmacion', {
                 paciente: { nombre, apellido, dni },
                 idAdmision: resAdmision.insertId,
                 horaIngreso: new Date().toLocaleTimeString()
             });
-
         } catch (error) {
-            console.error("Error en admisión:", error.message);
+            console.error('Error en admisión:', error.message);
             res.render('utiles/error', { mensaje: 'Error técnico al generar el ingreso: ' + error.message });
         }
     },
@@ -456,20 +456,26 @@ const hospitalController = {
         const idOS = obra_social_id || 1;
 
         try {
-            // Actualizamos el teléfono/obra social y creamos la admisión
-            await db.query('UPDATE pacientes SET telefono = ?, obrasocial = ? WHERE id_paciente = ?', 
-                [telefono, idOS, paciente_id]);
+            await pacienteModel.updatePacienteContacto({
+                paciente_id,
+                telefono,
+                obrasocial: idOS
+            });
 
-            const [resAdmision] = await db.query(
-                `INSERT INTO admisiones (paciente_id, obra_social_id, motivo_consulta, estado_admision) 
-                 VALUES (?, ?, ?, 'Ventanilla')`,
-                [paciente_id, idOS, motivo_consulta]
-            );
+            const [resAdmision] = await pacienteModel.createAdmision({
+                paciente_id,
+                obra_social_id: idOS,
+                motivo_consulta
+            });
 
-            const [pac] = await db.query('SELECT nombre, apellido, dni FROM pacientes WHERE id_paciente = ?', [paciente_id]);
-            
-            res.render('utiles/confirmacion', { 
-                paciente: pac[0],
+            const paciente = await pacienteModel.getPacienteById(paciente_id);
+
+            res.render('utiles/confirmacion', {
+                paciente: {
+                    nombre: paciente.nombre,
+                    apellido: paciente.apellido,
+                    dni: paciente.dni
+                },
                 idAdmision: resAdmision.insertId,
                 horaIngreso: new Date().toLocaleTimeString()
             });
@@ -630,28 +636,9 @@ const hospitalController = {
             const offset = (page - 1) * limit;
             const search = req.query.search ? req.query.search.trim() : '';
 
-            let whereClause = '';
-            let params = [];
-            if (search) {
-                whereClause = 'WHERE p.dni LIKE ?';
-                params.push(`%${search}%`);
-            }
-
-            // Obtener total de pacientes (filtrados si hay búsqueda)
-            const [totalResult] = await db.query(`SELECT COUNT(*) as total FROM pacientes p ${whereClause}`, params);
-            const totalPacientes = totalResult[0].total;
+            const totalPacientes = await pacienteModel.countPacientes(search);
             const totalPages = Math.ceil(totalPacientes / limit);
-
-            // Obtener pacientes con paginación y filtro
-            const [pacientes] = await db.query(`
-                SELECT p.id_paciente, p.nombre, p.apellido, p.dni, p.fecha_nacimiento, p.genero,
-                       o.nombre_obra_social as obra_social,
-                       TIMESTAMPDIFF(YEAR, p.fecha_nacimiento, CURDATE()) as edad
-                FROM pacientes p
-                LEFT JOIN obras_sociales o ON p.obrasocial = o.id_obra_social
-                ${whereClause}
-                ORDER BY p.apellido, p.nombre
-                LIMIT ? OFFSET ?`, [...params, limit, offset]);
+            const pacientes = await pacienteModel.searchPacientes({ search, limit, offset });
 
             res.render('pacientes/listapacientes', {
                 pacientes,
@@ -727,10 +714,7 @@ const hospitalController = {
     // Panel principal de administración de usuarios
     renderAdminUsuarios: async (req, res) => {
         try {
-            const [usuarios] = await db.query(
-                'SELECT id_usuario, nombre, apellido, dni, email, telefono, rol, estado, created_at FROM usuarios ORDER BY created_at DESC'
-            );
-
+            const usuarios = await usuarioModel.getAllUsuarios();
             res.render('admin/usuarios', { usuarios });
         } catch (error) {
             console.error('Error al obtener usuarios:', error);
@@ -741,13 +725,8 @@ const hospitalController = {
     // Formulario para crear nuevo usuario
     renderNuevoUsuario: async (req, res) => {
         try {
-            // Obtener lista de médicos para asignar
-            const [medicos] = await db.query(
-                'SELECT id_usuario, nombre, apellido FROM usuarios WHERE rol = ? AND estado = ?',
-                ['medico', 'activo']
-            );
+            const medicos = await usuarioModel.getMedicosActivos();
 
-            // Obtener lista de especialidades
             const [especialidades] = await db.query(
                 'SELECT IdEspecialidad, Nombre FROM especialidades WHERE estado = ? ORDER BY Nombre',
                 ['activa']
@@ -769,12 +748,8 @@ const hospitalController = {
         }
 
         try {
-            const [existe] = await db.query(
-                'SELECT id_usuario FROM usuarios WHERE dni = ?',
-                [dni]
-            );
-
-            return res.json({ existe: existe.length > 0 });
+            const existe = await usuarioModel.existsDni(dni);
+            return res.json({ existe });
         } catch (error) {
             console.error('Error al validar DNI:', error);
             return res.status(500).json({ error: 'No se pudo validar el DNI.' });
@@ -790,12 +765,8 @@ const hospitalController = {
         }
 
         try {
-            const [existe] = await db.query(
-                'SELECT id_usuario FROM usuarios WHERE email = ?',
-                [email]
-            );
-
-            return res.json({ existe: existe.length > 0 });
+            const existe = await usuarioModel.existsEmail(email);
+            return res.json({ existe });
         } catch (error) {
             console.error('Error al validar email:', error);
             return res.status(500).json({ error: 'No se pudo validar el email.' });
@@ -869,10 +840,7 @@ const hospitalController = {
 
         try {
             // Verificar si DNI o email ya existen
-            const [existe] = await db.query(
-                'SELECT id_usuario FROM usuarios WHERE dni = ? OR email = ?',
-                [dni, email]
-            );
+            const existe = await usuarioModel.findUsuarioByDniOrEmail(dni, email);
 
             if (existe.length > 0) {
                 return res.render('admin/nuevo-usuario', {
@@ -898,29 +866,29 @@ const hospitalController = {
                 }
             }
 
-            // Hashear contraseña
-            const { hashPassword } = require('../helpers/passwordHelper');
             const passwordHasheada = await hashPassword(password);
 
             let idMedicoAsignado = null;
 
-            // Si es médico, crear registro en tabla medicos primero
             if (rol === 'medico') {
-                const [result] = await db.query(
-                    `INSERT INTO medicos (Nombre, Apellido, Matricula, IdEspecialidad, estado)
-                     VALUES (?, ?, ?, ?, 'activo')`,
-                    [nombre, apellido, matricula, id_especialidad]
-                );
-
-                idMedicoAsignado = result.insertId;
+                idMedicoAsignado = await usuarioModel.createMedico({
+                    nombre,
+                    apellido,
+                    matricula,
+                    id_especialidad
+                });
             }
 
-            // Insertar usuario
-            await db.query(
-                `INSERT INTO usuarios (nombre, apellido, dni, telefono, email, password, rol, id_medico, estado)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'activo')`,
-                [nombre, apellido, dni, telefono || null, email, passwordHasheada, rol, idMedicoAsignado || id_medico || null]
-            );
+            await usuarioModel.createUsuario({
+                nombre,
+                apellido,
+                dni,
+                telefono,
+                email,
+                password: passwordHasheada,
+                rol,
+                id_medico: idMedicoAsignado || id_medico || null
+            });
 
             res.redirect('/admin/usuarios');
         } catch (error) {
@@ -939,22 +907,15 @@ const hospitalController = {
         }
 
         try {
-            const [usuarios] = await db.query(
-                'SELECT id_usuario, nombre, apellido, dni, telefono, email, rol, id_medico, estado FROM usuarios WHERE id_usuario = ?',
-                [id]
-            );
+            const usuario = await usuarioModel.findUsuarioById(id);
 
-            if (!usuarios.length) {
+            if (!usuario) {
                 return res.render('utiles/error', { mensaje: 'Usuario no encontrado.' });
             }
 
-            // Obtener lista de médicos para asignar
-            const [medicos] = await db.query(
-                'SELECT id_usuario, nombre, apellido FROM usuarios WHERE rol = ? AND estado = ?',
-                ['medico', 'activo']
-            );
+            const medicos = await usuarioModel.getMedicosActivos();
 
-            res.render('admin/editar-usuario', { usuario: usuarios[0], medicos });
+            res.render('admin/editar-usuario', { usuario, medicos });
         } catch (error) {
             console.error('Error al cargar usuario para editar:', error);
             res.render('utiles/error', { mensaje: 'Error al cargar los datos del usuario.' });
@@ -985,33 +946,29 @@ const hospitalController = {
         }
 
         try {
-            // Verificar si DNI o email ya existen en otro usuario
-            const [existe] = await db.query(
-                'SELECT id_usuario FROM usuarios WHERE (dni = ? OR email = ?) AND id_usuario != ?',
-                [dni, email, id]
-            );
+            const existe = await usuarioModel.findUsuarioByDniOrEmailExceptId(dni, email, id);
 
             if (existe.length > 0) {
                 return res.redirect(`/admin/usuarios/${id}/editar`);
             }
 
-            // Preparar consulta de actualización
-            let query, params;
-
+            let passwordHasheada = null;
             if (password && password.length >= 6) {
-                // Actualizar con nueva contraseña
-                const { hashPassword } = require('../helpers/passwordHelper');
-                const passwordHasheada = await hashPassword(password);
-
-                query = `UPDATE usuarios SET nombre = ?, apellido = ?, dni = ?, telefono = ?, email = ?, rol = ?, id_medico = ?, password = ? WHERE id_usuario = ?`;
-                params = [nombre, apellido, dni, telefono || null, email, rol, id_medico || null, passwordHasheada, id];
-            } else {
-                // Actualizar sin cambiar contraseña
-                query = `UPDATE usuarios SET nombre = ?, apellido = ?, dni = ?, telefono = ?, email = ?, rol = ?, id_medico = ? WHERE id_usuario = ?`;
-                params = [nombre, apellido, dni, telefono || null, email, rol, id_medico || null, id];
+                passwordHasheada = await hashPassword(password);
             }
 
-            await db.query(query, params);
+            await usuarioModel.updateUsuario({
+                id,
+                nombre,
+                apellido,
+                dni,
+                telefono,
+                email,
+                rol,
+                id_medico,
+                password: passwordHasheada
+            });
+
             res.redirect('/admin/usuarios');
         } catch (error) {
             console.error('Error al actualizar usuario:', error);
@@ -1024,17 +981,11 @@ const hospitalController = {
         const { id } = req.params;
 
         try {
-            // Verificar que no sea el propio usuario
             if (req.session.user.id == id) {
                 return res.redirect('/admin/usuarios');
             }
 
-            // Cambiar estado a inactivo (borrado lógico)
-            await db.query(
-                'UPDATE usuarios SET estado = ? WHERE id_usuario = ?',
-                ['inactivo', id]
-            );
-
+            await usuarioModel.setUsuarioEstado(id, 'inactivo');
             res.redirect('/admin/usuarios');
         } catch (error) {
             console.error('Error al eliminar usuario:', error);
@@ -1047,27 +998,17 @@ const hospitalController = {
         const { id } = req.params;
 
         try {
-            // Verificar que no sea el propio usuario
             if (req.session.user.id == id) {
                 return res.redirect('/admin/usuarios');
             }
 
-            // Obtener estado actual
-            const [usuario] = await db.query(
-                'SELECT estado FROM usuarios WHERE id_usuario = ?',
-                [id]
-            );
-
-            if (!usuario.length) {
+            const estadoActual = await usuarioModel.getUsuarioEstado(id);
+            if (!estadoActual) {
                 return res.redirect('/admin/usuarios');
             }
 
-            const nuevoEstado = usuario[0].estado === 'activo' ? 'inactivo' : 'activo';
-
-            await db.query(
-                'UPDATE usuarios SET estado = ? WHERE id_usuario = ?',
-                [nuevoEstado, id]
-            );
+            const nuevoEstado = estadoActual === 'activo' ? 'inactivo' : 'activo';
+            await usuarioModel.setUsuarioEstado(id, nuevoEstado);
 
             res.redirect('/admin/usuarios');
         } catch (error) {
@@ -1081,25 +1022,16 @@ const hospitalController = {
         const { id } = req.params;
 
         try {
-            // Obtener paciente
-            const [pacientes] = await db.query(`
-                SELECT p.id_paciente, p.nombre, p.apellido, p.dni, p.fecha_nacimiento, p.genero,
-                       p.telefono, p.direccion, p.obrasocial,
-                       o.nombre_obra_social as obra_social,
-                       TIMESTAMPDIFF(YEAR, p.fecha_nacimiento, CURDATE()) as edad
-                FROM pacientes p
-                LEFT JOIN obras_sociales o ON p.obrasocial = o.id_obra_social
-                WHERE p.id_paciente = ?`, [id]);
+            const paciente = await pacienteModel.getPacienteById(id);
 
-            if (!pacientes.length) {
+            if (!paciente) {
                 return res.render('utiles/error', { mensaje: 'Paciente no encontrado.' });
             }
 
-            // Obtener todas las obras sociales para el select
-            const [obrasSociales] = await db.query('SELECT id_obra_social, nombre_obra_social FROM obras_sociales ORDER BY nombre_obra_social');
+            const obrasSociales = await pacienteModel.getObrasSociales();
 
             res.render('pacientes/editarpaciente', {
-                paciente: pacientes[0],
+                paciente,
                 obrasSociales
             });
         } catch (error) {
@@ -1114,10 +1046,12 @@ const hospitalController = {
         const { obrasocial, direccion, telefono } = req.body;
 
         try {
-            await db.query(
-                'UPDATE pacientes SET obrasocial = ?, direccion = ?, telefono = ? WHERE id_paciente = ?',
-                [obrasocial, direccion, telefono, id]
-            );
+            await pacienteModel.updatePaciente({
+                id,
+                obrasocial,
+                direccion,
+                telefono
+            });
 
             res.redirect('/lista-pacientes');
         } catch (error) {

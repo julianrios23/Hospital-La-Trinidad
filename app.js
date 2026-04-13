@@ -22,7 +22,7 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'hospital-secret',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 24 * 60 * 60 * 1000 }
+    cookie: { maxAge: 24 * 60 * 60 * 1000, sameSite: false }
 }));
 
 app.use((req, res, next) => {

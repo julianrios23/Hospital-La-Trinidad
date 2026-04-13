@@ -12,7 +12,7 @@ block content
             // seccion izquierda: datos personales
             div
               // nombre del paciente
-              h3= internacion.paciente.apellido + ', ' + internacion.paciente.nombre
+              h3= internacion.paciente_apellido + ', ' + internacion.paciente_nombre
               // ubicacion del paciente
               p.text-muted Ala: #{internacion.nombre_ala} | Hab: #{internacion.numero_hab} | Cama: #{internacion.nombre_cama}
               // badge de estado de alta
@@ -103,6 +103,8 @@ block content
           button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
           button.btn.btn-warning(type="button" id="confirmAltaButton") Confirmar
 
+  form#confirmAltaForm(action=`/internacion/autorizar-alta/${internacion.id_internacion}` method="POST" style="display:none")
+
   // modal de confirmacion para finalizar internacion
   #confirmFinalizarModal.modal.fade(tabindex="-1" aria-labelledby="confirmFinalizarModalLabel" aria-hidden="true")
     .modal-dialog.modal-dialog-centered
@@ -170,32 +172,11 @@ block content
       // evento click boton confirmar alta
       if (confirmAltaButton) {
         confirmAltaButton.addEventListener('click', function() {
-          // hago request para autorizar alta
-          fetch(`/internacion/autorizar-alta/${#{internacion.id_internacion}}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            }
-          })
-          .then(response => {
-            if (response.ok) {
-              // oculto modal y muestro exito
-              confirmAltaModal.hide();
-              showBootstrapAlert('Alta medica autorizada exitosamente', 'success');
-              // recargo pagina despues de 1.4 segundos
-              setTimeout(() => location.reload(), 1400);
-            } else {
-              // muestro error
-              confirmAltaModal.hide();
-              showBootstrapAlert('Error al autorizar el alta medica', 'danger');
-            }
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            // muestro error de conexion
+          const form = document.getElementById('confirmAltaForm');
+          if (form) {
             confirmAltaModal.hide();
-            showBootstrapAlert('Error al autorizar el alta medica', 'danger');
-          });
+            form.submit();
+          }
         });
       }
 

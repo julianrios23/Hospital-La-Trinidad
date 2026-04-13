@@ -1,0 +1,9 @@
+@keyframes strobo {
+    0% { opacity: 1; background-color: #dc3545; }
+    50% { opacity: 0.3; background-color: #dc3545; }
+    100% { opacity: 1; background-color: #dc3545; }
+}
+
+.cama-strobo {
+    animation: strobo 0.8s infinite;
+}

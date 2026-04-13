@@ -18,11 +18,11 @@ block content
           |  #{selectedPatient.nombre} #{selectedPatient.apellido} (#{selectedPatient.dni}) - #{selectedPatient.diagnostico_guardia}
         a.btn.btn-sm.btn-secondary(href="/internacion/pacientes-espera") Cambiar paciente
     // alerta para seleccionar paciente
-    else if isAdmision
+    if isAdmision && !selectedPatient
       .alert.alert-warning
         | Selecciona un paciente de la lista de espera para poder asignar una cama.
     // alerta para medicos
-    else if isMedico
+    if isMedico
       .alert.alert-info
         | Como medico, puedes hacer click en las camas ocupadas para ver la evolucion de los pacientes internados.
 
@@ -87,7 +87,7 @@ block content
                       - var btnTitle = cama.estado_cama === 'Ocupada' ? 'Ver Paciente' : (isMedico ? 'Solo ver evoluciones' : 'Asignar Cama')
                       // boton para gestionar cama
                       button.btn.btn-sm.w-100.mb-1(type='button'
-                        class=btnClass + ' gestionar-cama'
+                        class=btnClass + ' gestionar-cama' + (cama.autorizado_alta_medica ? ' cama-strobo' : '')
                         style=btnStyle
                         title=btnTitle
                         data-cama-id=cama.id_cama
