@@ -116,10 +116,14 @@ const internacionController = {
         const { idInternacion } = req.params;
         const { evolucion, tratamiento } = req.body;
         try {
+            if (req.session.user.rol !== 'medico') {
+                return res.status(403).send('Solo médicos pueden registrar evoluciones');
+            }
+
             const idMedico = await internacionModel.getMedicoIdByUsuarioId(req.session.user.id);
 
             if (!idMedico) {
-                return res.status(403).send('el usuario actual no tiene perfil de medico asociado');
+                return res.status(403).send('No se pudo identificar el perfil médico del usuario');
             }
 
             await internacionModel.saveEvolucion({
@@ -128,16 +132,22 @@ const internacionController = {
                 evolucion,
                 tratamiento
             });
+            req.session.successMessage = 'Evolución registrada exitosamente';
             res.redirect(`/internacion/evolucion/${idInternacion}`);
         } catch (error) {
             console.error('Error al guardar evolucion:', error);
-            res.status(500).send('Error al guardar la evolucion');
+            req.session.errorMessage = 'Error al guardar la evolución';
+            res.redirect(`/internacion/evolucion/${idInternacion}`);
         }
     },
 
     // 7. autorizo el alta medica
     autorizarAlta: async (req, res) => {
         try {
+            if (req.session.user.rol !== 'medico') {
+                return res.status(403).send('Solo médicos pueden autorizar altas');
+            }
+
             const idMedico = await internacionModel.getMedicoIdByUsuarioId(req.session.user.id);
 
             if (idMedico) {
@@ -146,14 +156,16 @@ const internacionController = {
                     idMedico
                 });
             } else {
-                console.warn(`Usuario ${req.session.user.id} sin id_medico. Alta autorizada sin asignar médico.`);
+                console.warn(`Usuario ${req.session.user.id} sin id_medico asignado. Alta autorizada sin asignar médico.`);
                 await internacionModel.autorizarAltaMedica(req.params.idInternacion);
             }
 
+            req.session.successMessage = 'Alta médica autorizada exitosamente';
             res.redirect('/internacion/mapa-camas');
         } catch (error) {
             console.error('Error al autorizar alta:', error);
-            res.status(500).send('Error al autorizar');
+            req.session.errorMessage = 'Error al autorizar alta médica';
+            res.redirect('/internacion/mapa-camas');
         }
     },
 

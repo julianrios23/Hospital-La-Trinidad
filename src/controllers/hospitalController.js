@@ -1120,78 +1120,157 @@ const hospitalController = {
 
             if (pdf === 'true') {
                 // Generar PDF con PDFKit
-                const doc = new PDFDocument();
+                const doc = new PDFDocument({
+                    size: 'A4',
+                    margin: 50,
+                    info: {
+                        Title: `Historia Clínica - ${paciente.apellido} ${paciente.nombre}`,
+                        Author: 'Hospital La Trinidad',
+                        Subject: 'Historia Clínica del Paciente'
+                    }
+                });
                 let buffers = [];
                 doc.on('data', buffers.push.bind(buffers));
                 doc.on('end', () => {
                     const pdfBuffer = Buffer.concat(buffers);
                     res.setHeader('Content-Type', 'application/pdf');
-                    res.setHeader('Content-Disposition', 'attachment; filename=historia-clinica-' + paciente.dni + '.pdf');
+                    res.setHeader('Content-Disposition', `attachment; filename=historia clinica ${paciente.apellido} ${paciente.nombre}.pdf`);
                     res.send(pdfBuffer);
                 });
 
-                // Título
-                doc.fontSize(20).text('Historia Clínica del Paciente', { align: 'center' });
+                // Encabezado del hospital
+                doc.fontSize(16).font('Helvetica-Bold').text('HOSPITAL LA TRINIDAD', { align: 'center' });
+                doc.moveDown(0.5);
+                doc.fontSize(14).font('Helvetica-Bold').text('Historia Clínica del Paciente', { align: 'center' });
+                doc.moveDown();
+
+                // Línea separadora
+                doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
                 doc.moveDown();
 
                 // Datos del Paciente
-                doc.fontSize(16).text('Datos del Paciente');
-                doc.fontSize(12);
-                doc.text(`Nombre: ${paciente.nombre} ${paciente.apellido}`);
-                doc.text(`DNI: ${paciente.dni}`);
-                doc.text(`Fecha de Nacimiento: ${new Date(paciente.fecha_nacimiento).toLocaleDateString('es-ES')}`);
-                doc.text(`Edad: ${paciente.edad} años`);
-                doc.text(`Género: ${paciente.genero}`);
-                doc.text(`Teléfono: ${paciente.telefono || 'No registrado'}`);
-                doc.text(`Dirección: ${paciente.direccion || 'No registrada'}`);
-                doc.text(`Obra Social: ${paciente.obra_social || 'Sin obra social'}`);
+                doc.fontSize(12).font('Helvetica-Bold').text('DATOS DEL PACIENTE');
+                doc.moveDown(0.5);
+                doc.fontSize(10).font('Helvetica');
+
+                const patientData = [
+                    ['Nombre:', `${paciente.nombre} ${paciente.apellido}`],
+                    ['DNI:', paciente.dni],
+                    ['Fecha de Nacimiento:', new Date(paciente.fecha_nacimiento).toLocaleDateString('es-ES')],
+                    ['Edad:', `${paciente.edad} años`],
+                    ['Género:', paciente.genero],
+                    ['Teléfono:', paciente.telefono || 'No registrado'],
+                    ['Dirección:', paciente.direccion || 'No registrada'],
+                    ['Obra Social:', paciente.obra_social || 'Sin obra social']
+                ];
+
+                patientData.forEach(([label, value]) => {
+                    doc.text(`${label} ${value}`);
+                });
+
                 doc.moveDown();
 
                 // Historial de Admisiones
+                doc.fontSize(12).font('Helvetica-Bold').text('HISTORIAL DE ADMISIONES');
+                doc.moveDown(0.5);
+
                 historiaClinica.admisiones.forEach((admision, index) => {
-                    doc.fontSize(14).text(`Admisión ${index + 1} - ${new Date(admision.fecha_ingreso).toLocaleString('es-ES')}`);
-                    doc.fontSize(12).text(`Estado: ${admision.estado_admision}`);
-                    doc.text(`Motivo de Consulta: ${admision.motivo_consulta}`);
+                    // Verificar si hay espacio suficiente para la admisión completa
+                    if (doc.y > 700) {
+                        doc.addPage();
+                    }
+
+                    // Título de la admisión
+                    doc.fontSize(11).font('Helvetica-Bold').text(`Admisión ${index + 1}`, { underline: true });
+                    doc.fontSize(10).font('Helvetica');
+                    doc.text(`Fecha: ${new Date(admision.fecha_ingreso).toLocaleString('es-ES')}`);
+                    doc.text(`Estado: ${admision.estado_admision}`);
+                    doc.moveDown(0.3);
+
+                    // Motivo de consulta
+                    doc.font('Helvetica-Bold').text('Motivo de Consulta:');
+                    doc.font('Helvetica').text(admision.motivo_consulta || 'No especificado');
+                    doc.moveDown(0.3);
+
+                    // Triage
                     if (admision.triage) {
-                        doc.text(`Prioridad Triage: ${admision.triage.prioridad}`);
-                        doc.text(`Síntomas: ${admision.triage.sintomas}`);
+                        doc.font('Helvetica-Bold').text('Triage:');
+                        doc.font('Helvetica').text(`Prioridad: ${admision.triage.prioridad}`);
+                        if (admision.triage.sintomas) {
+                            doc.text(`Síntomas: ${admision.triage.sintomas}`);
+                        }
+                        doc.moveDown(0.3);
                     }
+
+                    // Atención médica
                     if (admision.atencion_medica) {
-                        doc.text(`Diagnóstico Guardia: ${admision.atencion_medica.diagnostico}`);
+                        doc.font('Helvetica-Bold').text('Atención Médica:');
+                        doc.font('Helvetica');
+                        if (admision.atencion_medica.diagnostico) {
+                            doc.text(`Diagnóstico: ${admision.atencion_medica.diagnostico}`);
+                        }
                         doc.text(`Requiere Internación: ${admision.atencion_medica.requiere_internacion ? 'Sí' : 'No'}`);
-                        doc.text(`Estado Atención: ${admision.atencion_medica.estado_atencion}`);
+                        doc.text(`Estado: ${admision.atencion_medica.estado_atencion}`);
+                        doc.moveDown(0.3);
                     }
+
+                    // Internación
                     if (admision.internacion) {
-                        doc.moveDown();
-                        doc.fontSize(12).text('Internación');
-                        doc.text(`Fecha Internación: ${new Date(admision.internacion.fecha_internacion).toLocaleString('es-ES')}`);
-                        doc.text(`Cama Asignada: ${admision.internacion.cama_id}`);
-                        doc.text(`Estado Registro: ${admision.internacion.estado_registro}`);
-                        doc.text(`Autorizado Alta Médica: ${admision.internacion.autorizado_alta_medica ? 'Sí' : 'No'}`);
+                        doc.font('Helvetica-Bold').text('Internación:');
+                        doc.font('Helvetica');
+                        doc.text(`Fecha: ${admision.internacion.fecha_ingreso_piso ? new Date(admision.internacion.fecha_ingreso_piso).toLocaleString('es-ES') : 'No registrada'}`);
+                        doc.text(`Cama: ${admision.internacion.cama_id}`);
+                        doc.text(`Estado: ${admision.internacion.estado_registro}`);
+                        doc.text(`Alta Médica Autorizada: ${admision.internacion.autorizado_alta_medica ? 'Sí' : 'No'}`);
+
+                        // Evoluciones
                         if (admision.evoluciones && admision.evoluciones.length > 0) {
-                            doc.moveDown();
-                            doc.text('Evoluciones');
-                            admision.evoluciones.forEach(evolucion => {
-                                doc.text(`Fecha: ${new Date(evolucion.fecha_evolucion).toLocaleString('es-ES')}`);
-                                doc.text(`Evolución: ${evolucion.evolucion}`);
-                                if (evolucion.tratamiento) {
-                                    doc.text(`Tratamiento: ${evolucion.tratamiento}`);
+                            doc.moveDown(0.3);
+                            doc.font('Helvetica-Bold').text('Evoluciones:');
+                            doc.font('Helvetica');
+                            admision.evoluciones.forEach((evolucion, evIndex) => {
+                                if (doc.y > 750) {
+                                    doc.addPage();
                                 }
-                                doc.moveDown(0.5);
+                                doc.text(`${evIndex + 1}. Fecha: ${new Date(evolucion.fecha_evolucion).toLocaleString('es-ES')}`);
+                                doc.text(`   Evolución: ${evolucion.evolucion}`);
+                                if (evolucion.tratamiento) {
+                                    doc.text(`   Tratamiento: ${evolucion.tratamiento}`);
+                                }
+                                doc.moveDown(0.2);
                             });
                         }
+
+                        // Alta
                         if (admision.alta) {
-                            doc.moveDown();
-                            doc.text('Alta');
-                            doc.text(`Fecha Alta: ${new Date(admision.alta.fecha_alta).toLocaleString('es-ES')}`);
-                            doc.text(`Tipo Alta: ${admision.alta.tipo_alta}`);
+                            doc.moveDown(0.3);
+                            doc.font('Helvetica-Bold').text('Alta:');
+                            doc.font('Helvetica');
+                            doc.text(`Fecha: ${new Date(admision.alta.fecha_alta).toLocaleString('es-ES')}`);
+                            doc.text(`Tipo: ${admision.alta.tipo_alta}`);
                             if (admision.alta.observaciones) {
                                 doc.text(`Observaciones: ${admision.alta.observaciones}`);
                             }
                         }
+
+                        doc.moveDown(0.5);
                     }
-                    doc.moveDown();
+
+                    // Línea separadora entre admisiones
+                    if (index < historiaClinica.admisiones.length - 1) {
+                        doc.moveDown(0.5);
+                        doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
+                        doc.moveDown(0.5);
+                    }
                 });
+
+                // Pie de página en la última página
+                doc.fontSize(8).font('Helvetica').text(
+                    `Generado el ${new Date().toLocaleString('es-ES')}`,
+                    50,
+                    doc.page.height - 30,
+                    { align: 'center' }
+                );
 
                 doc.end();
             } else {

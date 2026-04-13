@@ -28,29 +28,29 @@ block content
         .row
           .col-md-6
             p
-              strong Nombre:
+              strong Nombre: 
               | #{historiaClinica.paciente.nombre} #{historiaClinica.paciente.apellido}
             p
-              strong DNI:
+              strong DNI: 
               | #{historiaClinica.paciente.dni}
             p
-              strong Fecha de Nacimiento:
+              strong Fecha de Nacimiento: 
               | #{new Date(historiaClinica.paciente.fecha_nacimiento).toLocaleDateString('es-ES')}
             p
-              strong Edad:
+              strong Edad: 
               | #{historiaClinica.paciente.edad} años
           .col-md-6
             p
-              strong Género:
+              strong Género: 
               | #{historiaClinica.paciente.genero}
             p
-              strong Teléfono:
+              strong Teléfono: 
               | #{historiaClinica.paciente.telefono || 'No registrado'}
             p
-              strong Dirección:
+              strong Dirección: 
               | #{historiaClinica.paciente.direccion || 'No registrada'}
             p
-              strong Obra Social:
+              strong Obra Social: 
               | #{historiaClinica.paciente.obra_social || 'Sin obra social'}
 
     // Historial de Admisiones
@@ -66,25 +66,25 @@ block content
           .row
             .col-md-6
               p
-                strong Motivo de Consulta:
+                strong Motivo de Consulta: 
                 | #{admision.motivo_consulta}
               if admision.triage
                 p
-                  strong Prioridad Triage:
+                  strong Prioridad Triage: 
                   | #{admision.triage.prioridad}
                 p
-                  strong Síntomas:
+                  strong Síntomas: 
                   | #{admision.triage.sintomas}
             .col-md-6
               if admision.atencion_medica
                 p
-                  strong Diagnóstico Guardia:
+                  strong Diagnóstico Guardia: 
                   | #{admision.atencion_medica.diagnostico}
                 p
-                  strong Requiere Internación:
+                  strong Requiere Internación: 
                   | #{admision.atencion_medica.requiere_internacion ? 'Sí' : 'No'}
                 p
-                  strong Estado Atención:
+                  strong Estado Atención: 
                   | #{admision.atencion_medica.estado_atencion}
 
           if admision.internacion
@@ -93,17 +93,17 @@ block content
             .row
               .col-md-6
                 p
-                  strong Fecha Internación:
-                  | #{new Date(admision.internacion.fecha_internacion).toLocaleString('es-ES')}
+                  strong Fecha Internación: 
+                  | #{admision.internacion.fecha_ingreso_piso ? new Date(admision.internacion.fecha_ingreso_piso).toLocaleString('es-ES') : 'No registrada'}
                 p
-                  strong Cama Asignada:
+                  strong Cama Asignada: 
                   | #{admision.internacion.cama_id}
                 p
-                  strong Estado Registro:
+                  strong Estado Registro: 
                   | #{admision.internacion.estado_registro}
               .col-md-6
                 p
-                  strong Autorizado Alta Médica:
+                  strong Autorizado Alta Médica: 
                   | #{admision.internacion.autorizado_alta_medica ? 'Sí' : 'No'}
 
             if admision.evoluciones && admision.evoluciones.length > 0
@@ -112,14 +112,14 @@ block content
               each evolucion in admision.evoluciones
                 .border.rounded.p-3.mb-2
                   p.mb-1
-                    strong Fecha:
+                    strong Fecha: 
                     | #{new Date(evolucion.fecha_evolucion).toLocaleString('es-ES')}
                   p.mb-1
-                    strong Evolución:
+                    strong Evolución: 
                     | #{evolucion.evolucion}
                   if evolucion.tratamiento
                     p.mb-0
-                      strong Tratamiento:
+                      strong Tratamiento: 
                       | #{evolucion.tratamiento}
 
             if admision.alta
@@ -128,15 +128,15 @@ block content
               .row
                 .col-md-6
                   p
-                    strong Fecha Alta:
+                    strong Fecha Alta: 
                     | #{new Date(admision.alta.fecha_alta).toLocaleString('es-ES')}
                   p
-                    strong Tipo Alta:
+                    strong Tipo Alta: 
                     | #{admision.alta.tipo_alta}
                 .col-md-6
                   if admision.alta.observaciones
                     p
-                      strong Observaciones:
+                      strong Observaciones: 
                       | #{admision.alta.observaciones}
 
   style.

@@ -3,6 +3,15 @@ extends ../layout
 block content
   // contenedor principal
   .container.mt-4
+    // mensajes de éxito y error
+    if successMessage
+      .alert.alert-success.alert-dismissible.fade.show
+        button.btn-close(type="button" data-bs-dismiss="alert")
+        = successMessage
+    if errorMessage
+      .alert.alert-danger.alert-dismissible.fade.show
+        button.btn-close(type="button" data-bs-dismiss="alert")
+        = errorMessage
     .row
       // cabecera con datos del paciente internado
       .col-12.mb-4

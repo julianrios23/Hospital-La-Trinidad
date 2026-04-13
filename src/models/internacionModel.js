@@ -164,8 +164,13 @@ const internacionModel = {
 
     // busco el id_medico asociado a un usuario
     getMedicoIdByUsuarioId: async (idUsuario) => {
-        const [usuario] = await db.query('SELECT id_medico FROM usuarios WHERE id_usuario = ?', [idUsuario]);
-        return usuario[0]?.id_medico || null;
+        const [usuario] = await db.query('SELECT id_medico, nombre, apellido FROM usuarios WHERE id_usuario = ?', [idUsuario]);
+        if (usuario[0]?.id_medico) {
+            return usuario[0].id_medico;
+        }
+        // Si no tiene id_medico pero es médico, buscar médico con mismo nombre
+        const [medico] = await db.query('SELECT IdMedico FROM medicos WHERE Nombre = ? AND Apellido = ?', [usuario[0].nombre, usuario[0].apellido]);
+        return medico[0]?.IdMedico || null;
     },
 
     // guardo una evolucion clinica para la internacion
