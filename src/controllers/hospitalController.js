@@ -119,6 +119,8 @@ const hospitalController = {
                 redirectPath = '/triage';
             } else if (usuarioEncontrado.rol === 'medico') {
                 redirectPath = '/atencion-medica';
+            } else if (usuarioEncontrado.rol === 'admision_internacion') {
+                redirectPath = '/internacion/espera';
             }
             
             return res.redirect(redirectPath);
@@ -132,6 +134,130 @@ const hospitalController = {
         req.session.destroy(() => {
             res.redirect('/login');
         });
+    },
+
+    // Renderiza la vista de espera de internación
+    renderEspera: async (req, res) => {
+        try {
+            // Consulta simplificada para debug
+            const [pacientesEspera] = await db.query(`
+                SELECT 
+                    am.id_atencion_medica,
+                    a.id_admision,
+                    p.nombre,
+                    p.apellido,
+                    p.dni,
+                    am.diagnostico,
+                    am.requiere_internacion,
+                    am.estado_atencion,
+                    a.estado_admision,
+                    am.fecha_completada,
+                    a.fecha_ingreso
+                FROM atenciones_medicas am
+                JOIN admisiones a ON am.admision_id = a.id_admision
+                JOIN pacientes p ON a.paciente_id = p.id_paciente
+                WHERE am.requiere_internacion = 1
+            `);
+            console.log('Todos los pacientes con requiere_internacion=1:', pacientesEspera.length);
+            pacientesEspera.forEach((p, i) => {
+                console.log(`${i+1}: ID ${p.id_atencion_medica}, Admision ${p.id_admision}, Estado ${p.estado_atencion}, Admision Estado ${p.estado_admision}`);
+            });
+
+            // Consulta original con filtros
+            const [pacientesEsperaFiltrados] = await db.query(`
+                SELECT 
+                    a.id_admision,
+                    p.nombre,
+                    p.apellido,
+                    p.dni,
+                    am.diagnostico as diagnostico_guardia,
+                    TIMEDIFF(NOW(), COALESCE(am.fecha_completada, a.fecha_ingreso)) as tiempo_transcurrido,
+                    COALESCE(t.prioridad, 0) as prioridad
+                FROM admisiones a
+                JOIN pacientes p ON a.paciente_id = p.id_paciente
+                JOIN atenciones_medicas am ON a.id_admision = am.admision_id
+                LEFT JOIN atenciones_triage t ON a.id_admision = t.admision_id
+                WHERE am.requiere_internacion = 1 
+                  AND am.estado_atencion IN ('completada', 'internacion')
+                ORDER BY 
+                    COALESCE(t.prioridad, 0) ASC,
+                    COALESCE(am.fecha_completada, a.fecha_ingreso) ASC
+            `);
+            console.log('Pacientes filtrados para vista:', pacientesEsperaFiltrados.length);
+            console.log('Primeros pacientes filtrados:', pacientesEsperaFiltrados.slice(0, 2));
+
+            res.render('internacion/espera', { pacientesEspera: pacientesEsperaFiltrados, user: req.session.user });
+        } catch (error) {
+            console.error('Error al obtener pacientes en espera:', error);
+            res.render('utiles/error', { mensaje: 'Error al cargar pacientes en espera de internación.' });
+        }
+    },
+
+    // Renderiza el mapa de camas para internación
+    renderMapaCamas: async (req, res) => {
+        try {
+            const [camasData] = await db.query(`
+                SELECT 
+                    c.id_cama,
+                    c.nombre_cama,
+                    h.numero as habitacion_numero,
+                    h.id_habitacion,
+                    al.nombre_ala,
+                    al.id_ala,
+                    c.estado_cama,
+                    CONCAT(p.nombre, ' ', p.apellido) as paciente_nombre,
+                    p.dni
+                FROM camas c
+                JOIN habitaciones h ON c.habitacion_id = h.id_habitacion
+                JOIN alas al ON h.ala_id = al.id_ala
+                LEFT JOIN internaciones i ON c.id_cama = i.cama_id AND i.estado_registro = 'Activo'
+                LEFT JOIN admisiones a ON i.admision_id = a.id_admision
+                LEFT JOIN pacientes p ON a.paciente_id = p.id_paciente
+                ORDER BY al.id_ala ASC, h.numero ASC, c.nombre_cama ASC
+            `);
+
+            // Definir estructura fija: 3 alas, 5 habitaciones, 2 camas cada una
+            const alasNombres = ['Coronaria', 'Medicina General', 'Cirugía'];
+            const habitacionesNumeros = [1, 2, 3, 4, 5];
+            const camasNombres = ['A', 'B'];
+
+            // Crear mapa de camas existentes por ala, habitación, cama
+            const camasMap = new Map();
+            camasData.forEach(cama => {
+                const key = `${cama.nombre_ala}-${cama.habitacion_numero}-${cama.nombre_cama}`;
+                camasMap.set(key, {
+                    id_cama: cama.id_cama,
+                    estado_cama: cama.estado_cama,
+                    paciente_nombre: cama.paciente_nombre,
+                    dni: cama.dni
+                });
+            });
+
+            // Generar estructura completa
+            const alas = alasNombres.map(nombreAla => ({
+                nombre_ala: nombreAla,
+                habitaciones: habitacionesNumeros.map(numHab => ({
+                    numero: numHab,
+                    camas: camasNombres.map(nombreCama => {
+                        const key = `${nombreAla}-${numHab}-${nombreCama}`;
+                        const camaExistente = camasMap.get(key);
+                        return {
+                            id_cama: camaExistente ? camaExistente.id_cama : null,
+                            nombre_cama: nombreCama,
+                            estado_cama: camaExistente ? camaExistente.estado_cama : 'Libre',
+                            paciente_nombre: camaExistente ? camaExistente.paciente_nombre : null,
+                            dni: camaExistente ? camaExistente.dni : null,
+                            existe: !!camaExistente
+                        };
+                    })
+                }))
+            }));
+
+            res.render('internacion/mapa-camas', { alas, user: req.session.user });
+        } catch (error) {
+            console.error('Error al obtener mapa de camas:', error);
+            res.render('utiles/error', { mensaje: 'Error al cargar el mapa de camas.' });
+        }
     },
 
     // Renderiza la vista de cambio de contraseña

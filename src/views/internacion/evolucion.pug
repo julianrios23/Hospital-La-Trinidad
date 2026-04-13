@@ -1,0 +1,42 @@
+extends ../layout
+
+block content
+  .container.mt-4
+    .row
+      //- Cabecera con datos del Paciente Internado
+      .col-12.mb-4
+        .card.bg-light
+          .card-body.d-flex.justify-content-between.align-items-center
+            div
+              h3= internacion.paciente_nombre
+              p.text-muted Ala: #{internacion.nombre_ala} | Hab: #{internacion.numero_hab} | Cama: #{internacion.nombre_cama}
+            if !internacion.autorizado_alta_medica
+              button.btn.btn-warning(onclick="darAltaMedica()") 
+                i.bi.bi-check2-circle
+                |  Autorizar Alta Médica
+
+      //- Historial de Evoluciones
+      .col-md-7
+        h5 Historial de Seguimiento
+        each evo in evoluciones
+          .card.mb-3.border-start.border-info.border-4
+            .card-body
+              h6.card-title.text-primary= evo.fecha_formateada
+              p.card-text= evo.evolucion_clinica
+              hr
+              small.text-muted Tratamiento: #{evo.tratamiento_actual}
+
+      //- Formulario para Nueva Evolución (Solo si no tiene alta)
+      .col-md-5
+        if !internacion.autorizado_alta_medica
+          .card.shadow-sm
+            .card-header.bg-info.text-white Nueva Entrada de Piso
+            .card-body
+              form(action=`/internacion/evolucion/${internacion.id_internacion}` method="POST")
+                .mb-3
+                  label.form-label Evolución Clínica
+                  textarea.form-control(name="evolucion" rows="4" required)
+                .mb-3
+                  label.form-label Tratamiento / Medicación
+                  textarea.form-control(name="tratamiento" rows="3")
+                button.btn.btn-info.w-100(type="submit") Guardar Evolución

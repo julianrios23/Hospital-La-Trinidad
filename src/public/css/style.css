@@ -66,3 +66,28 @@
   font-weight: 700;
 }
 
+/* Badge colors for priority levels */
+.bg-priority-1 {
+  background-color: #dc3545 !important; /* Rojo - Emergencia */
+}
+
+.bg-priority-2 {
+  background-color: #fd7e14 !important; /* Naranja - Muy Urgente */
+}
+
+.bg-priority-3 {
+  background-color: #ffc107 !important; /* Amarillo - Urgente */
+}
+
+.bg-priority-4 {
+  background-color: #198754 !important; /* Verde - Menos Urgente */
+}
+
+.bg-priority-5 {
+  background-color: #0dcaf0 !important; /* Azul - No Urgente */
+}
+
+.bg-priority-0 {
+  background-color: #6c757d !important; /* Gris - Sin asignar */
+}
+

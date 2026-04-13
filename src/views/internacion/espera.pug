@@ -1,0 +1,31 @@
+extends ../layout
+
+block content
+  .container.mt-4
+    .card.border-primary
+      .card-header.bg-primary.text-white
+        h4.mb-0 <i class="bi bi-person-lines-fill"></i> Pacientes Pendientes de Internación
+      .card-body
+        .table-responsive
+          table.table.table-hover.align-middle
+            thead.table-light
+              tr
+                th Prioridad
+                th Paciente (DNI)
+                th Diagnóstico Guardia
+                th Tiempo Espera
+                th Acción
+            tbody
+              if pacientesEspera.length > 0
+                each p in pacientesEspera
+                  tr
+                    td: span.badge(class=`bg-priority-${p.prioridad}`)= p.prioridad > 0 ? p.prioridad : 'No asignada'
+                    td #{p.nombre} #{p.apellido} (#{p.dni})
+                    td: em= p.diagnostico_guardia
+                    td= p.tiempo_transcurrido
+                    td
+                      a.btn.btn-sm.btn-primary(href=`/internacion/asignar-cama/${p.id_admision}`) 
+                        i.bi.bi-box-arrow-in-right
+                        |  Asignar Cama
+              else
+                tr: td.text-center(colspan="5") No hay pacientes en espera de cama.

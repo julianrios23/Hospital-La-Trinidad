@@ -1,0 +1,41 @@
+extends ../layout
+
+block content
+  .container.mt-4
+    h2.text-center.mb-4 🏥 Mapa de Gestión de Camas
+    
+    
+
+    //- Renderizado de Alas
+    each ala in alas
+      .ala-container(id=`ala-${ala.nombre_ala.replace(' ', '')}`)
+        h3.border-bottom.pb-2.mb-3= ala.nombre_ala
+        .row.row-cols-1.row-cols-md-5.g-4.mb-5
+          each habitacion in ala.habitaciones
+            .col
+              .card.h-100.shadow-sm
+                .card-header.bg-dark.text-white.text-center
+                  | Hab. #{habitacion.numero}
+                .card-body.p-2
+                  .row
+                    each cama in habitacion.camas
+                      .col-6.text-center
+                        //- Lógica de colores: Verde sólido libre, Naranja sólido ocupada
+                        - var btnClass = cama.estado_cama === 'Libre' ? 'btn-success' : 'btn-warning'
+                        - var btnStyle = cama.estado_cama === 'Libre' ? 'background-color: #006400 !important; border-color: #006400 !important;' : ''
+                        - var btnDisabled = !cama.existe ? '' : ''
+                        - var btnTitle = cama.estado_cama === 'Ocupada' ? 'Ver Paciente' : (cama.existe ? 'Asignar Cama' : 'Cama no creada')
+                        - var btnOnclick = cama.existe ? `gestionarCama(${cama.id_cama}, '${cama.estado_cama}')` : `alert('Cama no creada en el sistema')`
+                        button.btn.btn-sm.w-100.mb-1(
+                          class=btnClass
+                          style=btnStyle
+                          title=btnTitle
+                          onclick=btnOnclick
+                          disabled=btnDisabled
+                        )
+                          i.bi.bi-door-closed
+                          br
+                          small Cama #{cama.nombre_cama}
+                          if cama.existe && cama.estado_cama === 'Ocupada'
+                            br
+                            small.text-white= cama.paciente_nombre

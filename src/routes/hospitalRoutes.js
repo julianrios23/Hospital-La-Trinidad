@@ -16,6 +16,22 @@ const ensureAdmin = (req, res, next) => {
   res.status(403).render('utiles/error', { mensaje: 'Acceso denegado. Solo administradores pueden acceder a esta sección.' });
 };
 
+// Middleware para verificar que NO sea admision_internacion
+const ensureNotInternacion = (req, res, next) => {
+  if (req.session && req.session.user && req.session.user.rol === 'admision_internacion') {
+    return res.status(403).render('utiles/error', { mensaje: 'Acceso denegado. Su rol solo permite acceder a Espera y Mapa de Camas.' });
+  }
+  return next();
+};
+
+// Middleware para verificar que SÍ sea admision_internacion
+const ensureInternacion = (req, res, next) => {
+  if (req.session && req.session.user && req.session.user.rol === 'admision_internacion') {
+    return next();
+  }
+  res.status(403).render('utiles/error', { mensaje: 'Acceso denegado. Esta sección es solo para administradores de internación.' });
+};
+
 // --- RUTAS DE ADMISIÓN (Ventanilla) ---
 router.get('/', (req, res) => {
   if (req.session && req.session.user) {
@@ -28,27 +44,31 @@ router.post('/login', hospitalController.loginUser);
 router.get('/logout', hospitalController.logoutUser);
 router.get('/cambiar-password', ensureAuthenticated, hospitalController.renderCambiarPassword);
 router.post('/cambiar-password', ensureAuthenticated, hospitalController.cambiarPassword);
-router.post('/buscar-paciente', ensureAuthenticated, hospitalController.buscarPaciente);
-router.post('/guardar-paciente', ensureAuthenticated, hospitalController.guardarNuevoPaciente);
-router.post('/crear-admision', ensureAuthenticated, hospitalController.crearAdmisionExistente);
+router.post('/buscar-paciente', ensureAuthenticated, ensureNotInternacion, hospitalController.buscarPaciente);
+router.post('/guardar-paciente', ensureAuthenticated, ensureNotInternacion, hospitalController.guardarNuevoPaciente);
+router.post('/crear-admision', ensureAuthenticated, ensureNotInternacion, hospitalController.crearAdmisionExistente);
 
 // RUTA DE REDIRECCIÓN (Invocada por el script del Toast)
-router.get('/registro-paciente/:dni', ensureAuthenticated, hospitalController.renderRegistroDni);
+router.get('/registro-paciente/:dni', ensureAuthenticated, ensureNotInternacion, hospitalController.renderRegistroDni);
 
 // --- RUTAS DE ENFERMERÍA ---
-router.get('/triage/:id', ensureAuthenticated, hospitalController.renderTriagePaciente);
-router.get('/triage', ensureAuthenticated, hospitalController.renderTriage);
-router.post('/guardar-triage', ensureAuthenticated, hospitalController.guardarTriage);
+router.get('/triage/:id', ensureAuthenticated, ensureNotInternacion, hospitalController.renderTriagePaciente);
+router.get('/triage', ensureAuthenticated, ensureNotInternacion, hospitalController.renderTriage);
+router.post('/guardar-triage', ensureAuthenticated, ensureNotInternacion, hospitalController.guardarTriage);
 
 // --- RUTAS DE MÉDICOS ---
-router.get('/atencion-medica', ensureAuthenticated, hospitalController.renderAtencionMedica);
-router.get('/atender/:id', ensureAuthenticated, hospitalController.renderDiagnostico);
-router.post('/guardar-diagnostico', ensureAuthenticated, hospitalController.guardarDiagnostico);
+router.get('/atencion-medica', ensureAuthenticated, ensureNotInternacion, hospitalController.renderAtencionMedica);
+router.get('/atender/:id', ensureAuthenticated, ensureNotInternacion, hospitalController.renderDiagnostico);
+router.post('/guardar-diagnostico', ensureAuthenticated, ensureNotInternacion, hospitalController.guardarDiagnostico);
+
+// --- RUTAS DE INTERNACIÓN ---
+router.get('/internacion/espera', ensureAuthenticated, ensureInternacion, hospitalController.renderEspera);
+router.get('/internacion/mapa-camas', ensureAuthenticated, ensureInternacion, hospitalController.renderMapaCamas);
 
 // --- RUTAS DE PACIENTES ---
-router.get('/lista-pacientes', ensureAuthenticated, hospitalController.renderListaPacientes);
-router.get('/pacientes/:id/editar', ensureAuthenticated, hospitalController.renderEditarPaciente);
-router.post('/pacientes/:id/actualizar', ensureAuthenticated, hospitalController.actualizarPaciente);
+router.get('/lista-pacientes', ensureAuthenticated, ensureNotInternacion, hospitalController.renderListaPacientes);
+router.get('/pacientes/:id/editar', ensureAuthenticated, ensureNotInternacion, hospitalController.renderEditarPaciente);
+router.post('/pacientes/:id/actualizar', ensureAuthenticated, ensureNotInternacion, hospitalController.actualizarPaciente);
 
 // --- RUTAS DE ADMINISTRACIÓN ---
 router.get('/admin/usuarios', ensureAdmin, hospitalController.renderAdminUsuarios);

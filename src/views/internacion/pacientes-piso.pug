@@ -1,0 +1,35 @@
+extends ../layout
+
+block content
+  .container.mt-4
+    h2 👨‍⚕️ Pacientes Internados (Gestión Clínica)
+    .row.mt-3
+      each ala in internadosPorAla
+        .col-md-12.mb-4
+          .card.shadow-sm
+            .card-header.bg-dark.text-white
+              h5.mb-0 Ala: #{ala.nombre}
+            .card-body
+              table.table.table-hover
+                thead
+                  tr
+                    th Hab/Cama
+                    th Paciente
+                    th Ingreso
+                    th Estado Alta
+                    th Acción
+                tbody
+                  each p in ala.pacientes
+                    tr
+                      td Hab #{p.numero_hab} - Cama #{p.nombre_cama}
+                      td #{p.paciente_nombre}
+                      td= p.fecha_ingreso
+                      td
+                        if p.autorizado_alta_medica
+                          span.badge.bg-success Alta Autorizada
+                        else
+                          span.badge.bg-warning En Tratamiento
+                      td
+                        a.btn.btn-sm.btn-outline-primary(href=`/internacion/evolucion/${p.id_internacion}`)
+                          i.bi.bi-journal-medical
+                          |  Ver Evolución

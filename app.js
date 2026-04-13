@@ -3,6 +3,7 @@ const path = require('path');
 const dotenv = require('dotenv');
 const session = require('express-session');
 const hospitalRoutes = require('./src/routes/hospitalRoutes');
+const internacionRoutes = require('./src/routes/internacionRoutes');
 
 // Cargar variables de entorno
 dotenv.config();
@@ -40,6 +41,8 @@ app.use('/', hospitalRoutes)
 app.use((req, res) => {
     res.status(404).render('utiles/error', { mensaje: 'La página solicitada no existe.' });
 });
+//internacion routes
+app.use('/internacion', internacionRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
