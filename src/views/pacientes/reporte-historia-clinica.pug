@@ -1,0 +1,148 @@
+extends ../layout
+
+block content
+  .container.mt-4
+    .row
+      .col-12
+        .d-flex.justify-content-between.align-items-center.mb-4
+          .d-flex.align-items-center
+            button.btn.btn-secondary.me-3(onclick="window.history.back()")
+              i.bi.bi-arrow-left.me-1
+              | Atrás
+            h1.text-primary.mb-0 Historia Clínica del Paciente
+          .btn-group
+            button.btn.btn-primary(onclick="window.print()")
+              i.bi.bi-printer.me-1
+              | Imprimir
+            a.btn.btn-success(href=`?pdf=true`)
+              i.bi.bi-file-earmark-pdf.me-1
+              | Exportar PDF
+
+    // Datos del Paciente
+    .card.mb-4
+      .card-header.bg-primary.text-white
+        h5.mb-0
+          i.bi.bi-person-circle.me-2
+          | Datos del Paciente
+      .card-body
+        .row
+          .col-md-6
+            p
+              strong Nombre:
+              | #{historiaClinica.paciente.nombre} #{historiaClinica.paciente.apellido}
+            p
+              strong DNI:
+              | #{historiaClinica.paciente.dni}
+            p
+              strong Fecha de Nacimiento:
+              | #{new Date(historiaClinica.paciente.fecha_nacimiento).toLocaleDateString('es-ES')}
+            p
+              strong Edad:
+              | #{historiaClinica.paciente.edad} años
+          .col-md-6
+            p
+              strong Género:
+              | #{historiaClinica.paciente.genero}
+            p
+              strong Teléfono:
+              | #{historiaClinica.paciente.telefono || 'No registrado'}
+            p
+              strong Dirección:
+              | #{historiaClinica.paciente.direccion || 'No registrada'}
+            p
+              strong Obra Social:
+              | #{historiaClinica.paciente.obra_social || 'Sin obra social'}
+
+    // Historial de Admisiones
+    each admision, index in historiaClinica.admisiones
+      .card.mb-4
+        .card-header.bg-info.text-white
+          h5.mb-0
+            i.bi.bi-calendar-event.me-2
+            | Admisión #{index + 1} - #{new Date(admision.fecha_ingreso).toLocaleString('es-ES')}
+          small.text-white-50 Estado: #{admision.estado_admision}
+
+        .card-body
+          .row
+            .col-md-6
+              p
+                strong Motivo de Consulta:
+                | #{admision.motivo_consulta}
+              if admision.triage
+                p
+                  strong Prioridad Triage:
+                  | #{admision.triage.prioridad}
+                p
+                  strong Síntomas:
+                  | #{admision.triage.sintomas}
+            .col-md-6
+              if admision.atencion_medica
+                p
+                  strong Diagnóstico Guardia:
+                  | #{admision.atencion_medica.diagnostico}
+                p
+                  strong Requiere Internación:
+                  | #{admision.atencion_medica.requiere_internacion ? 'Sí' : 'No'}
+                p
+                  strong Estado Atención:
+                  | #{admision.atencion_medica.estado_atencion}
+
+          if admision.internacion
+            hr
+            h6.text-primary Internación
+            .row
+              .col-md-6
+                p
+                  strong Fecha Internación:
+                  | #{new Date(admision.internacion.fecha_internacion).toLocaleString('es-ES')}
+                p
+                  strong Cama Asignada:
+                  | #{admision.internacion.cama_id}
+                p
+                  strong Estado Registro:
+                  | #{admision.internacion.estado_registro}
+              .col-md-6
+                p
+                  strong Autorizado Alta Médica:
+                  | #{admision.internacion.autorizado_alta_medica ? 'Sí' : 'No'}
+
+            if admision.evoluciones && admision.evoluciones.length > 0
+              hr
+              h6.text-success Evoluciones
+              each evolucion in admision.evoluciones
+                .border.rounded.p-3.mb-2
+                  p.mb-1
+                    strong Fecha:
+                    | #{new Date(evolucion.fecha_evolucion).toLocaleString('es-ES')}
+                  p.mb-1
+                    strong Evolución:
+                    | #{evolucion.evolucion}
+                  if evolucion.tratamiento
+                    p.mb-0
+                      strong Tratamiento:
+                      | #{evolucion.tratamiento}
+
+            if admision.alta
+              hr
+              h6.text-danger Alta
+              .row
+                .col-md-6
+                  p
+                    strong Fecha Alta:
+                    | #{new Date(admision.alta.fecha_alta).toLocaleString('es-ES')}
+                  p
+                    strong Tipo Alta:
+                    | #{admision.alta.tipo_alta}
+                .col-md-6
+                  if admision.alta.observaciones
+                    p
+                      strong Observaciones:
+                      | #{admision.alta.observaciones}
+
+  style.
+    @media print {
+      .btn, .btn-group, nav { display: none !important; }
+      .card { border: 1px solid #000 !important; }
+      .card-header { background: #f8f9fa !important; color: #000 !important; border-bottom: 1px solid #000 !important; }
+      body { font-size: 12px; }
+    }

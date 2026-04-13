@@ -85,6 +85,7 @@ router.post('/guardar-diagnostico', ensureAuthenticated, ensureNotInternacion, h
 router.get('/lista-pacientes', ensureAuthenticated, hospitalController.renderListaPacientes);
 router.get('/pacientes/:id/editar', ensureAuthenticated, hospitalController.renderEditarPaciente);
 router.post('/pacientes/:id/actualizar', ensureAuthenticated, hospitalController.actualizarPaciente);
+router.get('/pacientes/:id/reporte', ensureAuthenticated, hospitalController.generarReporteHistoriaClinica);
 
 // rutas de administracion
 // declaro las rutas de administracion de usuarios con rol de admin

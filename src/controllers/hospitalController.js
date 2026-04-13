@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const usuarioModel = require('../models/usuarioModel');
 const pacienteModel = require('../models/pacienteModel');
 const { hashPassword } = require('../helpers/passwordHelper');
+const PDFDocument = require('pdfkit');
 
 // --- REGLAS DE VALIDACIÓN (Regex para Backend) ---
 const regexLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
@@ -1057,6 +1058,155 @@ const hospitalController = {
         } catch (error) {
             console.error('Error al actualizar paciente:', error);
             res.render('utiles/error', { mensaje: 'Error al actualizar el paciente.' });
+        }
+    },
+
+    // Generar Reporte de Historia Clínica
+    generarReporteHistoriaClinica: async (req, res) => {
+        const { id } = req.params;
+        const { pdf } = req.query;
+
+        try {
+            // Obtener datos del paciente
+            const paciente = await pacienteModel.getPacienteById(id);
+            if (!paciente) {
+                return res.render('utiles/error', { mensaje: 'Paciente no encontrado.' });
+            }
+
+            // Obtener todas las admisiones del paciente
+            const [admisiones] = await db.query('SELECT * FROM admisiones WHERE paciente_id = ? ORDER BY fecha_ingreso DESC', [id]);
+
+            const historiaClinica = {
+                paciente,
+                admisiones: []
+            };
+
+            for (const admision of admisiones) {
+                const admisionData = { ...admision };
+
+                // Triage
+                const [triage] = await db.query('SELECT * FROM atenciones_triage WHERE admision_id = ?', [admision.id_admision]);
+                admisionData.triage = triage[0] || null;
+
+                // Atención médica
+                const [atencion] = await db.query('SELECT * FROM atenciones_medicas WHERE admision_id = ?', [admision.id_admision]);
+                admisionData.atencion_medica = atencion[0] || null;
+
+                // Internación
+                const [internacion] = await db.query('SELECT * FROM internaciones WHERE admision_id = ?', [admision.id_admision]);
+                admisionData.internacion = internacion[0] || null;
+
+                if (admisionData.internacion) {
+                    // Evoluciones
+                    const [evoluciones] = await db.query('SELECT * FROM evoluciones_internacion WHERE internacion_id = ? ORDER BY fecha_registro ASC', [admisionData.internacion.id_internacion]);
+                    admisionData.evoluciones = evoluciones.map(e => ({
+                        fecha_evolucion: e.fecha_registro,
+                        evolucion: e.evolucion_clinica,
+                        tratamiento: e.tratamiento_actual
+                    }));
+
+                    // Alta (usando datos de internaciones)
+                    if (admisionData.internacion.fecha_alta_piso) {
+                        admisionData.alta = {
+                            fecha_alta: admisionData.internacion.fecha_alta_piso,
+                            tipo_alta: 'Alta médica', // Asumiendo, ya que no hay campo específico
+                            observaciones: 'Alta procesada'
+                        };
+                    }
+                }
+
+                historiaClinica.admisiones.push(admisionData);
+            }
+
+            if (pdf === 'true') {
+                // Generar PDF con PDFKit
+                const doc = new PDFDocument();
+                let buffers = [];
+                doc.on('data', buffers.push.bind(buffers));
+                doc.on('end', () => {
+                    const pdfBuffer = Buffer.concat(buffers);
+                    res.setHeader('Content-Type', 'application/pdf');
+                    res.setHeader('Content-Disposition', 'attachment; filename=historia-clinica-' + paciente.dni + '.pdf');
+                    res.send(pdfBuffer);
+                });
+
+                // Título
+                doc.fontSize(20).text('Historia Clínica del Paciente', { align: 'center' });
+                doc.moveDown();
+
+                // Datos del Paciente
+                doc.fontSize(16).text('Datos del Paciente');
+                doc.fontSize(12);
+                doc.text(`Nombre: ${paciente.nombre} ${paciente.apellido}`);
+                doc.text(`DNI: ${paciente.dni}`);
+                doc.text(`Fecha de Nacimiento: ${new Date(paciente.fecha_nacimiento).toLocaleDateString('es-ES')}`);
+                doc.text(`Edad: ${paciente.edad} años`);
+                doc.text(`Género: ${paciente.genero}`);
+                doc.text(`Teléfono: ${paciente.telefono || 'No registrado'}`);
+                doc.text(`Dirección: ${paciente.direccion || 'No registrada'}`);
+                doc.text(`Obra Social: ${paciente.obra_social || 'Sin obra social'}`);
+                doc.moveDown();
+
+                // Historial de Admisiones
+                historiaClinica.admisiones.forEach((admision, index) => {
+                    doc.fontSize(14).text(`Admisión ${index + 1} - ${new Date(admision.fecha_ingreso).toLocaleString('es-ES')}`);
+                    doc.fontSize(12).text(`Estado: ${admision.estado_admision}`);
+                    doc.text(`Motivo de Consulta: ${admision.motivo_consulta}`);
+                    if (admision.triage) {
+                        doc.text(`Prioridad Triage: ${admision.triage.prioridad}`);
+                        doc.text(`Síntomas: ${admision.triage.sintomas}`);
+                    }
+                    if (admision.atencion_medica) {
+                        doc.text(`Diagnóstico Guardia: ${admision.atencion_medica.diagnostico}`);
+                        doc.text(`Requiere Internación: ${admision.atencion_medica.requiere_internacion ? 'Sí' : 'No'}`);
+                        doc.text(`Estado Atención: ${admision.atencion_medica.estado_atencion}`);
+                    }
+                    if (admision.internacion) {
+                        doc.moveDown();
+                        doc.fontSize(12).text('Internación');
+                        doc.text(`Fecha Internación: ${new Date(admision.internacion.fecha_internacion).toLocaleString('es-ES')}`);
+                        doc.text(`Cama Asignada: ${admision.internacion.cama_id}`);
+                        doc.text(`Estado Registro: ${admision.internacion.estado_registro}`);
+                        doc.text(`Autorizado Alta Médica: ${admision.internacion.autorizado_alta_medica ? 'Sí' : 'No'}`);
+                        if (admision.evoluciones && admision.evoluciones.length > 0) {
+                            doc.moveDown();
+                            doc.text('Evoluciones');
+                            admision.evoluciones.forEach(evolucion => {
+                                doc.text(`Fecha: ${new Date(evolucion.fecha_evolucion).toLocaleString('es-ES')}`);
+                                doc.text(`Evolución: ${evolucion.evolucion}`);
+                                if (evolucion.tratamiento) {
+                                    doc.text(`Tratamiento: ${evolucion.tratamiento}`);
+                                }
+                                doc.moveDown(0.5);
+                            });
+                        }
+                        if (admision.alta) {
+                            doc.moveDown();
+                            doc.text('Alta');
+                            doc.text(`Fecha Alta: ${new Date(admision.alta.fecha_alta).toLocaleString('es-ES')}`);
+                            doc.text(`Tipo Alta: ${admision.alta.tipo_alta}`);
+                            if (admision.alta.observaciones) {
+                                doc.text(`Observaciones: ${admision.alta.observaciones}`);
+                            }
+                        }
+                    }
+                    doc.moveDown();
+                });
+
+                doc.end();
+            } else {
+                // Renderizar vista HTML
+                res.render('pacientes/reporte-historia-clinica', { historiaClinica });
+            }
+        } catch (error) {
+            console.error('Error al generar reporte:', error);
+            console.log('Detalles del error en generación de reporte de historia clínica:', {
+                pacienteId: id,
+                errorMessage: error.message,
+                errorStack: error.stack,
+                timestamp: new Date().toISOString()
+            });
+            res.render('utiles/error', { mensaje: 'Error al generar el reporte de historia clínica.' });
         }
     }
 };

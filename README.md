@@ -104,7 +104,15 @@ hospital-trinidad/
 - **Estado de internación** (activa, alta autorizada, finalizada)
 - **Liberación de camas** al egreso
 
-### 5. 📊 Gestión de Pacientes
+### 5. � Reportes de Historia Clínica
+- **Generación automática** de reportes completos por paciente
+- **Recorrido cronológico** desde guardia hasta alta médica
+- **Información integrada**: datos personales, triage, diagnósticos, evoluciones, altas
+- **Exportación a PDF** para archivo y distribución
+- **Vista imprimible** optimizada para papel
+- **Acceso desde lista de pacientes** para personal de admisión
+
+### 6. �📊 Gestión de Pacientes
 - **Base de datos centralizada** con información completa
 - **Búsqueda y filtrado** avanzado
 - **Edición de datos** (contacto, obra social)
@@ -133,6 +141,7 @@ hospital-trinidad/
 - ✅ Registro de nuevos pacientes
 - ✅ Gestión de obras sociales
 - ✅ Acceso a lista de pacientes
+- ✅ Generación de reportes de historia clínica
 
 #### 👩‍⚕️ Enfermería
 - ✅ Triage y evaluación inicial

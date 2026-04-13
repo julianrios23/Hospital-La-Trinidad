@@ -68,6 +68,10 @@ block content
                     a.btn.btn-sm.btn-outline-primary(href=`/pacientes/${paciente.id_paciente}/editar`)
                       i.bi.bi-pencil.me-1
                       | Editar
+                    // boton para ver reporte historia clinica
+                    a.btn.btn-sm.btn-outline-success.ms-1(href=`/pacientes/${paciente.id_paciente}/reporte`)
+                      i.bi.bi-file-earmark-text.me-1
+                      | Reporte
 
         // seccion de paginacion
         if totalPages > 1
