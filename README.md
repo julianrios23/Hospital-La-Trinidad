@@ -308,13 +308,62 @@ node admin-password.js reset usuario@email.com
 - [ ] Portal del paciente
 - [ ] Aplicación móvil
 
-## 🤝 Contribución
+## 📄 Reporte Técnico
 
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/nueva-funcionalidad`)
-3. Commit tus cambios (`git commit -am 'Agrega nueva funcionalidad'`)
-4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
-5. Abre un Pull Request
+Este documento describe el cumplimiento de objetivos y la arquitectura del módulo de internación.
+
+### Proyecto
+
+- **Nombre:** Hospital La Trinidad HIS
+- **Versión:** v2.0
+- **Materia:** Programación Web II - Universidad de La Punta
+- **Responsable:** Julian Rios
+
+### 1. 🎯 Objetivo Académico
+
+El objetivo del trabajo práctico es evolucionar un sistema de guardia hacia un sistema HIS completo que gestione la infraestructura física del hospital y el flujo clínico-administrativo de los pacientes en piso.
+
+### 2. 🏛️ Infraestructura Hospitalaria
+
+El sistema debe gestionar la estructura física definida en el requerimiento.
+
+| Requisito | Implementación | Estado |
+|-----------|----------------|--------|
+| 3 alas definidas | Coronaria, Medicina General y Cirugía | ✅ CUMPLIDO |
+| 5 habitaciones por ala | 15 habitaciones registradas en la base de datos | ✅ CUMPLIDO |
+| 2 camas por habitación | Total de 30 camas con nomenclatura A/B | ✅ CUMPLIDO |
+| Gestión de estados de cama | Estados libres y ocupadas | ✅ CUMPLIDO |
+
+### 3. 🔄 Flujo de Trabajo y Roles
+
+El sistema implementa el viaje del paciente respetando la separación de funciones por rol.
+
+#### A. Admisión de Internación (Rol: `admision_internacion`)
+
+- Captura desde guardia: el sistema identifica pacientes en estado de espera de internación.
+- Asignación de cama: proceso visual desde el mapa de camas.
+- Transaccionalidad: se utiliza `connection.beginTransaction()` para asegurar que la cama y el estado del paciente se actualicen juntos.
+
+#### B. Seguimiento Clínico (Rol: `medico`)
+
+- Evolución diaria: el médico registra progresos y tratamientos.
+- Autorización de alta: el médico activa el flag `autorizado_alta_medica`.
+- El sistema impide liberar la cama si no se autoriza el alta.
+
+#### C. Egreso Hospitalario
+
+- Cierre de ciclo: el personal administrativo finaliza la internación y libera la cama para el siguiente ingreso.
+
+### 4. 🛠️ Calidad Técnica y Arquitectura
+
+- **Arquitectura MVC:** separación clara entre rutas, controladores y vistas.
+- **Seguridad:** uso de consultas parametrizadas para evitar inyección SQL.
+- **Sesiones:** `express-session` para el estado del usuario y la gestión de flujo.
+- **Interfaz:** Bootstrap 5 para un mapa de camas dinámico y responsive.
+
+### 5. ✅ Conclusión
+
+El proyecto cumple con los objetivos del documento `2025_Practico_Integrador_HIS_Internacion.pdf`. La integración con el módulo anterior de guardia es orgánica y la base de datos está normalizada para soportar escalabilidad.
 
 ## 📝 Licencia
 
