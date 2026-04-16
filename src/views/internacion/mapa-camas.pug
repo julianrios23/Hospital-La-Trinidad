@@ -84,7 +84,8 @@ block content
                       - var btnClass = cama.estado_cama === 'Libre' ? (isMedico ? 'btn-secondary' : 'btn-success') : 'btn-warning'
                       - var btnStyle = cama.estado_cama === 'Libre' ? (isMedico ? '' : 'background-color: #006400 !important; border-color: #006400 !important;') : ''
                       - var btnDisabled = isMedico && cama.estado_cama === 'Libre'
-                      - var btnTitle = cama.estado_cama === 'Ocupada' ? 'Ver Paciente' : (isMedico ? 'Solo ver evoluciones' : 'Asignar Cama')
+                      - var pacienteInfo = cama.estado_cama === 'Ocupada' && cama.paciente_nombre ? `${cama.paciente_nombre} ${cama.paciente_apellido} (${cama.paciente_sexo})` : ''
+                      - var btnTitle = cama.estado_cama === 'Ocupada' ? (pacienteInfo || 'Ver Paciente') : (isMedico ? 'Solo ver evoluciones' : 'Asignar Cama')
                       // boton para gestionar cama
                       button.btn.btn-sm.w-100.mb-1(type='button'
                         class=btnClass + ' gestionar-cama' + (cama.autorizado_alta_medica ? ' cama-strobo' : '')
@@ -98,9 +99,11 @@ block content
                         i.bi.bi-door-closed
                         br
                         small Cama #{cama.nombre_cama}
-                        if cama.existe && cama.estado_cama === 'Ocupada'
+                        if cama.estado_cama === 'Ocupada' && cama.paciente_nombre
                           br
-                          small.text-white= cama.paciente_nombre
+                          small.text-white= `${cama.paciente_nombre} ${cama.paciente_apellido}`
+                          br
+                          small.text-white= cama.paciente_sexo
 
     // script para manejar camas y modal
     script.

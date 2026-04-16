@@ -141,15 +141,18 @@ block content
                         each especialidad in especialidades
                           option(value=especialidad.IdEspecialidad)= especialidad.Nombre
 
-                // Médico asignado (solo para enfermería)
-                .col-md-6(id="medicoContainer" style="display: none;")
-                  label.form-label.fw-bold(for="id_medico")
+                // Médico asignado
+                .col-12(id="medicoContainer" style="display: none;")
+                  hr
+                  h6.fw-bold.text-primary
                     i.bi.bi-person-check.me-2
                     | Médico Asignado
-                  select#id_medico.form-select(name="id_medico")
-                    option(value="" selected) Sin asignar
-                    each medico in medicos
-                      option(value=medico.id_usuario)= `${medico.nombre} ${medico.apellido}`
+                  .row.g-3
+                    .col-md-6
+                      select#id_medico.form-select(name="id_medico")
+                        option(value="" selected) Sin asignar
+                        each medico in medicos
+                          option(value=medico.id_usuario)= `${medico.nombre} ${medico.apellido}`
 
                 // Contraseña
                 .col-md-6
@@ -210,8 +213,8 @@ block content
           medicoFields.style.display = 'none';
           document.getElementById('matricula').required = false;
           document.getElementById('id_especialidad').required = false;
-          medicoContainer.style.display = 'block';
-          document.getElementById('id_medico').required = true;
+          medicoContainer.style.display = 'none';
+          document.getElementById('id_medico').required = false;
         }
         // Para otros roles
         else {

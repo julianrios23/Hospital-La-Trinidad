@@ -831,12 +831,8 @@ const hospitalController = {
         }
 
         // Validaciones específicas para enfermería
-        if (rol === 'enfermeria' && !id_medico) {
-            return res.render('admin/nuevo-usuario', {
-                error: 'Para enfermería, debe seleccionar un médico asignado.',
-                medicos: [],
-                especialidades: []
-            });
+        if (rol === 'enfermeria') {
+            // Para enfermería, id_medico puede ser null
         }
 
         try {
@@ -888,7 +884,7 @@ const hospitalController = {
                 email,
                 password: passwordHasheada,
                 rol,
-                id_medico: idMedicoAsignado || id_medico || null
+                id_medico: rol === 'enfermeria' ? null : (idMedicoAsignado || id_medico || null)
             });
 
             res.redirect('/admin/usuarios');

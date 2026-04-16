@@ -22,6 +22,8 @@ const internacionController = {
                     nombre_cama: cama.nombre_cama,
                     estado_cama: cama.estado_cama,
                     paciente_nombre: cama.paciente_nombre,
+                    paciente_apellido: cama.paciente_apellido,
+                    paciente_sexo: cama.paciente_genero,
                     dni: cama.dni,
                     id_internacion: cama.id_internacion,
                     autorizado_alta_medica: cama.autorizado_alta_medica

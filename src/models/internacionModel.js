@@ -10,7 +10,9 @@ const internacionModel = {
                 h.numero as habitacion_numero,
                 al.nombre_ala,
                 c.estado_cama,
-                CONCAT(p.nombre, ' ', p.apellido) as paciente_nombre,
+                p.nombre as paciente_nombre,
+                p.apellido as paciente_apellido,
+                p.genero as paciente_genero,
                 p.dni,
                 i.id_internacion,
                 i.autorizado_alta_medica
