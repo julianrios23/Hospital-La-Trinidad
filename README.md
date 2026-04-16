@@ -123,7 +123,7 @@ hospital-trinidad/
 | Usuario | Email | Rol | Descripción | Contraseña |
 |---------|-------|-----|-------------|------------|
 | **Luis ** | luisguardia@hospital.com | Admisión Guardia | Recepción de pacientes en ventanilla | 123456 |
-| **Mariano ** | marianoenferm@hospital.com | Enfermería | Triage y evaluación inicial | 123456 |
+| **Denisse ** | denisenfer@mail.com | Enfermería | Triage y evaluación inicial | 123456 |
 | **Sofía ** | sofiadoc@mail.com | Médico | Diagnóstico y tratamiento | 123456 |
 | **Marta ** | martaadmision@mail.com | Admisión Internación | Gestión de camas y internaciones | 123456 |
 | **Gabriel ** | gabrieldoc@mail.com | Médico | Diagnóstico y tratamiento | 123456 |
