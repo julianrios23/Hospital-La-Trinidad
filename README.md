@@ -2,7 +2,7 @@
 
 **TP WEB II - UNIVERSIDAD DE LA PUNTA**
 
-Sistema integral de gestión hospitalaria desarrollado con Node.js, Express y MySQL para la administración completa del flujo de pacientes en un hospital.
+Sistema integral de gestión hospitalaria desarrollado con Node.js, Express y MySQL para la administración completa del flujo de pacientes en un hospital. Este sistema fue realizado con estrecha colaboración de IA (Gemini), principalmente su front.
 
 ## 📋 Descripción del Proyecto
 
